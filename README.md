@@ -1,5 +1,7 @@
 # 社工師刷題本
 
+**線上使用 → <https://00539.github.io/social-worker-exam-tw/>**
+
 專門職業及技術人員高等考試「社會工作師」考古題庫與備考工具。
 
 把考選部公布的 **106–115 年、20 次考試、115 份考卷** 全部解析成結構化資料，
@@ -70,6 +72,11 @@ python scripts/serve.py
 
 `app/` 是純靜態的兩個檔案，丟到任何靜態主機或直接用瀏覽器開都能跑，
 不需要後端，也不會把任何資料傳出去。
+
+### 部署
+
+推到 `main` 且異動到 `app/` 時，`.github/workflows/pages.yml` 會自動把 `app/`
+部署到 GitHub Pages。也可以到 Actions 頁面手動觸發（workflow_dispatch）。
 
 ### 4.（選用）重新產生備考指南
 
