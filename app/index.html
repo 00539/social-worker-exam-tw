@@ -1329,6 +1329,96 @@ function viewEssay(){
       ? el('button',{cls:'btn sm',text:'下一題 →',onclick:function(){essayGo(1);}}):null
   ]);
 
+  /* ── 作答參考 ────────────────────────────
+     考選部不公布申論題標準答案，所以這裡不寫「範答」，
+     改為提供可查證的材料：同考點測驗題的官方正解、同主題歷年申論題、通用架構。 */
+  var refBox=(function(){
+    var box=el('div',{cls:'card stack'},[el('div',{cls:'eyebrow',text:'作答參考'})]);
+
+    box.appendChild(el('div',{cls:'notice',
+      text:'考選部僅公布申論題題目，不公布標準答案與評分標準。'
+        +'以下不是範答，是可以查證的材料：同一考點的測驗題官方正解可以直接當知識點核對，'
+        +'歷年同主題申論題可以看出問法變化。'}));
+
+    if(q.tags.length){
+      box.appendChild(el('div',{},[
+        el('div',{cls:'flabel',style:'margin-bottom:8px',text:'本題考點'}),
+        conTags(q,false)
+      ]));
+
+      /* 同考點的測驗題正解——這些是考選部公告答案，可信 */
+      var seen={}, picks=[];
+      q.tags.forEach(function(t){
+        (CON_Q[t]||[]).forEach(function(mq){
+          if(seen[mq.id]||isStale(mq)) return;
+          seen[mq.id]=1; picks.push(mq);
+        });
+      });
+      picks.sort(function(a,b){ return b.exam<a.exam? -1:1; });   /* 新的在前 */
+      picks=picks.slice(0,12);
+
+      if(picks.length){
+        var kl=el('div',{cls:'alsolist'});
+        picks.forEach(function(mq){
+          kl.appendChild(el('div',{cls:'also',style:subStyle(mq.subject)},[
+            el('div',{text:mq.stem}),
+            el('div',{},[
+              el('span',{cls:'a',text:'正解 '+ansText(mq)+'：'}),
+              document.createTextNode(multi(mq)?'（公告更正，均給分）':mq.opts[LETTERS.indexOf(mq.ans)])
+            ]),
+            el('span',{cls:'src',text:srcShort(mq)})
+          ]));
+        });
+        box.appendChild(el('details',{cls:'padwrap',open:true},[
+          el('summary',{text:'同考點測驗題的官方正解（'+picks.length+' 題，可當知識點核對）'}),
+          kl
+        ]));
+      }
+
+      /* 同考點的其他年度申論題 */
+      var es={}, others=[];
+      q.tags.forEach(function(t){
+        (CON_E[t]||[]).forEach(function(eq){
+          if(eq.id===q.id||es[eq.id]) return;
+          es[eq.id]=1; others.push(eq);
+        });
+      });
+      if(others.length){
+        var ol=el('div',{cls:'alsolist'});
+        others.slice(0,6).forEach(function(eq){
+          ol.appendChild(el('div',{cls:'also'},[
+            el('div',{cls:'essay',style:'font-size:14.5px;line-height:1.85',text:eq.text}),
+            el('span',{cls:'src',text:srcShort(eq)+'（'+(eq.points||25)+' 分）'})
+          ]));
+        });
+        box.appendChild(el('details',{cls:'padwrap'},[
+          el('summary',{text:'歷年同主題申論題（'+Math.min(6,others.length)+' 題，看問法怎麼變）'}),
+          ol
+        ]));
+      }
+    } else {
+      box.appendChild(el('div',{cls:'muted tiny',
+        text:'本題未歸入既有考點，建議直接用下方的 AI 批閱，或回原卷對照教科書。'}));
+    }
+
+    /* 通用答題架構 */
+    var frame=el('div',{cls:'alsolist'},[
+      el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'一、定義與概念　'}),
+        document.createTextNode('先界定題目問到的名詞。這段幾乎一定有分，不要跳過。')])]),
+      el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'二、理論依據　'}),
+        document.createTextNode('指出所依據的觀點或模式，能點出學者姓名更好；沒把握就寫觀點名稱，不要杜撰人名。')])]),
+      el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'三、分項回答　'}),
+        document.createTextNode('依題目小題順序，用（一）（二）（三）分點作答，不要寫成一整段。')])]),
+      el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'四、連結情境　'}),
+        document.createTextNode('回到題目給的案例或臺灣實務脈絡。這段是高低分的分水嶺。')])])
+    ]);
+    box.appendChild(el('details',{cls:'padwrap'},[
+      el('summary',{text:'通用答題架構（四段式）'}), frame
+    ]));
+
+    return box;
+  })();
+
   var aiBox=el('div',{cls:'card stack'},[
     el('div',{cls:'eyebrow',text:'AI 批閱'}),
     el('div',{id:'ai-essay-slot'})
@@ -1341,11 +1431,7 @@ function viewEssay(){
   refreshAI();
   ta.addEventListener('blur',refreshAI);
 
-  var note=el('div',{cls:'card'},[
-    el('div',{cls:'notice',text:'考選部僅公布申論題題目，不公布標準答案或評分標準；這裡提供的是題目原文與作答空間，擬答內容請自行對照教科書與相關法規查核。'})
-  ]);
-
-  show([card,nav,aiBox,note]);
+  show([card,nav,refBox,aiBox]);
   foot.innerHTML='申論題共 '+ES.length+' 題（106–115 年）。擬答草稿存在本機瀏覽器，清除瀏覽資料會一併消失。';
 }
 
