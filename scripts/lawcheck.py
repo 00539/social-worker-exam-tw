@@ -57,17 +57,44 @@ LAWS = {
         amended=1130807, scope='修正 14 條、增訂 1 條', risk='mid',
         aliases=['兒童及少年性剝削防制條例', '兒童及少年性交易防制條例']),
     '國民年金法': dict(
-        amended=1090603, scope='修正範圍未逐條核對', risk='mid',
+        amended=1090603, scope='僅修正第 12、40 條', risk='low',
         aliases=['國民年金法']),
     '全民健康保險法': dict(
-        amended=1120628, scope='修正範圍未逐條核對', risk='mid',
+        amended=1120628, scope='僅增訂第 80-1、80-2 條', risk='low',
         aliases=['全民健康保險法', '全民健保法']),
     '勞工保險條例': dict(
-        amended=1150121, scope='修正範圍未逐條核對', risk='mid',
+        amended=1150121, scope='僅修正第 29、66、69 條', risk='low',
         aliases=['勞工保險條例']),
     '就業保險法': dict(
-        amended=1110112, scope='修正範圍未逐條核對', risk='mid',
+        amended=1110112, scope='僅修正第 19-2 條', risk='low',
         aliases=['就業保險法']),
+
+    # ── 第二批：題庫引用 8 次以上但先前未納入核對的法規 ──
+    '志願服務法': dict(
+        amended=1090115, scope='僅修正第 4 條', risk='low',
+        aliases=['志願服務法']),
+    '公益勸募條例': dict(
+        amended=1090115, scope='僅修正第 4 條', risk='low',
+        aliases=['公益勸募條例']),
+    '特殊境遇家庭扶助條例': dict(
+        amended=1100120, scope='僅修正第 12 條', risk='low',
+        aliases=['特殊境遇家庭扶助條例']),
+    '長期照顧服務機構法人條例': dict(
+        amended=1070131, scope='107 年制定後未曾修正', risk='none',
+        aliases=['長期照顧服務機構法人條例']),
+    '兒童及少年未來教育與發展帳戶條例': dict(
+        amended=1070606, scope='107 年制定後未曾修正', risk='none',
+        aliases=['兒童及少年未來教育與發展帳戶條例']),
+    # 公約本文由聯合國訂定，不隨國內修法變動；這裡追蹤的是其施行法
+    '身心障礙者權利公約施行法': dict(
+        amended=1030820, scope='103 年制定後未曾修正；公約本文不因國內修法而變動',
+        risk='none', aliases=['身心障礙者權利公約', 'CRPD']),
+    '兒童權利公約施行法': dict(
+        amended=1080619, scope='僅修正第 6 條；公約本文不因國內修法而變動',
+        risk='low', aliases=['兒童權利公約', 'CRC']),
+    '消除對婦女一切形式歧視公約施行法': dict(
+        amended=1000608, scope='100 年制定後未曾修正；公約本文不因國內修法而變動',
+        risk='none', aliases=['消除對婦女一切形式歧視公約', 'CEDAW']),
 }
 
 RISK_ORDER = {'none': 0, 'low': 1, 'mid': 2, 'high': 3}
