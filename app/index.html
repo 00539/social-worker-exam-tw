@@ -18,6 +18,13 @@
   --accent:#0E757E; --accent-soft:#DCEFF0; --accent-ink:#0A5960;
   --ok:#2C7A4B; --ok-soft:#DFF0E5; --no:#B03228; --no-soft:#FBE4E1;
   --flag:#A9701A; --flag-soft:#FAEEDA;
+  /* 六科色彩分類：避開主色的青綠色相，六個色相彼此分開 */
+  --s0:#3D5AA6; --s0b:#E7ECF8;   /* 社會工作 — 靛藍 */
+  --s1:#2E7D50; --s1b:#E3F2E9;   /* 直接服務 — 森綠 */
+  --s2:#7A4A9C; --s2b:#F0E8F7;   /* 工作管理 — 葡萄紫 */
+  --s3:#B0453A; --s3b:#FAE7E4;   /* 政策立法 — 磚紅 */
+  --s4:#B36A1E; --s4b:#FBEEDD;   /* 人類行為 — 赭橘 */
+  --s5:#6F7B1F; --s5b:#F0F3DC;   /* 研究方法 — 橄欖 */
   --shadow:0 1px 2px rgba(26,35,31,.06), 0 6px 20px -12px rgba(26,35,31,.18);
   --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --serif:"Noto Serif TC","PMingLiU","Songti TC",serif;
@@ -31,6 +38,12 @@
   --accent:#3EB4BC; --accent-soft:#11302F; --accent-ink:#8CDCE1;
   --ok:#5CBE82; --ok-soft:#14301F; --no:#E4776B; --no-soft:#331A17;
   --flag:#D5A052; --flag-soft:#2E2413;
+  --s0:#8AA4E8; --s0b:#1A2338;   /* 社會工作 */
+  --s1:#68C48F; --s1b:#14291E;   /* 直接服務 */
+  --s2:#BE95DC; --s2b:#241A33;   /* 工作管理 */
+  --s3:#E88A7C; --s3b:#33201C;   /* 政策立法 */
+  --s4:#DDA45E; --s4b:#332616;   /* 人類行為 */
+  --s5:#BCC466; --s5b:#26291A;   /* 研究方法 */
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.7);
 }}
 :root[data-theme="dark"]{
@@ -40,6 +53,12 @@
   --accent:#3EB4BC; --accent-soft:#11302F; --accent-ink:#8CDCE1;
   --ok:#5CBE82; --ok-soft:#14301F; --no:#E4776B; --no-soft:#331A17;
   --flag:#D5A052; --flag-soft:#2E2413;
+  --s0:#8AA4E8; --s0b:#1A2338;   /* 社會工作 */
+  --s1:#68C48F; --s1b:#14291E;   /* 直接服務 */
+  --s2:#BE95DC; --s2b:#241A33;   /* 工作管理 */
+  --s3:#E88A7C; --s3b:#33201C;   /* 政策立法 */
+  --s4:#DDA45E; --s4b:#332616;   /* 人類行為 */
+  --s5:#BCC466; --s5b:#26291A;   /* 研究方法 */
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.7);
 }
 /* Artifact 平台原本會外掛的基礎重設，獨立網頁要自己補 */
@@ -69,9 +88,89 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
 .progline{height:2px;background:var(--line);position:relative;overflow:hidden}
 .progline i{position:absolute;inset:0 auto 0 0;background:var(--accent);width:0;transition:width .25s ease}
 
+/* ── 導覽列 ─────────────────────────── */
+.nav{border-bottom:1px solid var(--line);background:var(--surface)}
+.nav-in{max-width:1080px;margin:0 auto;padding:0 16px;display:flex;gap:2px;overflow-x:auto;
+  scrollbar-width:none}
+.nav-in::-webkit-scrollbar{display:none}
+.nav a{padding:12px 15px;font-size:14.5px;font-weight:500;color:var(--ink-2);white-space:nowrap;
+  border-bottom:2.5px solid transparent;cursor:pointer;transition:color .12s,border-color .12s}
+.nav a:hover{color:var(--ink)}
+.nav a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+
+/* ── 首頁 Hero ──────────────────────── */
+.hero2{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;align-items:center;
+  padding-block:34px 30px}
+.hero2 .eyebrow{margin-bottom:12px}
+.hero2 h1{font-family:var(--serif);font-size:clamp(28px,4.4vw,42px);line-height:1.28;font-weight:600;
+  letter-spacing:.01em}
+.hero2 p.lead{margin:14px 0 0;font-size:16.5px;color:var(--ink-2);max-width:40ch;line-height:1.85}
+.hero2 .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.countcard{border:1.5px solid var(--accent);border-radius:14px;padding:20px 22px;background:var(--accent-soft)}
+.countcard .lab{font-size:13px;color:var(--accent-ink);font-weight:700}
+.countcard .d{display:flex;align-items:baseline;gap:8px;margin:6px 0 2px}
+.countcard .d b{font-family:var(--mono);font-size:54px;font-weight:600;line-height:1;color:var(--accent-ink);
+  font-variant-numeric:tabular-nums}
+.countcard .d span{font-size:15px;color:var(--accent-ink);font-weight:700}
+.countcard .sub{font-size:12.5px;color:var(--ink-2);line-height:1.7;margin-top:6px;white-space:pre-line}
+.countcard .meter{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+
+/* 數據帶 */
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.band>div{background:var(--surface);padding:16px 18px}
+.band b{display:block;font-family:var(--mono);font-size:26px;font-weight:600;line-height:1.2;
+  font-variant-numeric:tabular-nums}
+.band span{font-size:12.5px;color:var(--ink-2)}
+
+/* 分科入口卡 */
+.subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:12px}
+.subcard{position:relative;text-align:left;border:1px solid var(--line);border-radius:12px;
+  background:var(--surface);padding:17px 18px 17px 21px;overflow:hidden;
+  display:flex;flex-direction:column;gap:9px;transition:border-color .14s,transform .14s}
+.subcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--sc)}
+.subcard:hover{border-color:var(--sc);transform:translateY(-2px)}
+.subcard h3{font-size:17.5px;font-weight:700;letter-spacing:.01em}
+.subcard .meta{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
+.subcard .meta .n{font-family:var(--mono);font-weight:600;color:var(--sc);font-size:15px}
+.subcard .acc{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.subcard .bar{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.subcard .bar i{display:block;height:100%;background:var(--sc);border-radius:99px}
+.subcard .hot{font-size:12px;color:var(--ink-3);line-height:1.65}
+.subcard .hot b{color:var(--sc);font-weight:600}
+.subcard .go{font-size:13px;font-weight:700;color:var(--sc)}
+.subcard.dropped{opacity:.72}
+.subcard.dropped h3::after{content:"115 年起停考";font-size:11px;font-weight:500;color:var(--ink-3);
+  margin-left:8px;border:1px solid var(--line-2);border-radius:99px;padding:2px 7px;white-space:nowrap}
+
+/* 功能介紹 */
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:12px}
+.feat{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:18px}
+.feat h4{font-size:15.5px;font-weight:700;margin-bottom:6px}
+.feat p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.8}
+.feat .ic{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);
+  display:grid;place-items:center;font-size:17px;margin-bottom:11px}
+
+.sechead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:2px}
+.sechead h2{font-size:21px;font-weight:700;font-family:var(--serif)}
+.sechead p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.sechead .more{margin-left:auto;font-size:13.5px;color:var(--accent);font-weight:600;cursor:pointer}
+
+/* 站台頁尾 */
+.sitefoot{border-top:1px solid var(--line);background:var(--surface);margin-top:40px}
+.sitefoot-in{max-width:1080px;margin:0 auto;padding:26px 16px 34px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px;font-size:13px;color:var(--ink-2);line-height:1.85}
+.sitefoot h5{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.sitefoot a{color:var(--accent)}
+
+/* 題目上的科目色條 */
+.subtag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--sc)}
+.subtag::before{content:"";width:9px;height:9px;border-radius:2px;background:var(--sc)}
+
 /* ── 版面 ───────────────────────────── */
 main{max-width:760px;margin:0 auto;padding:22px 16px 56px}
-.wide{max-width:960px}
+.wide{max-width:1080px}
+main.wide .stack{gap:34px}
 .stack{display:flex;flex-direction:column;gap:18px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
 .muted{color:var(--ink-2)}
@@ -179,6 +278,11 @@ main{max-width:760px;margin:0 auto;padding:22px 16px 56px}
   border-radius:var(--r);padding:10px 13px;font-size:13px;line-height:1.7;color:var(--ink);margin-bottom:14px}
 .warn b{color:var(--flag);flex:none}
 .tag.law{background:var(--flag-soft);color:var(--flag);border:1px solid var(--flag)}
+.warn[data-risk="high"]{background:var(--no-soft);border-color:var(--no)}
+.warn[data-risk="high"] b{color:var(--no)}
+.warn[data-risk="low"]{background:var(--surface-2);border-color:var(--line-2)}
+.warn[data-risk="low"] b{color:var(--ink-2)}
+.aiwrap{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-2)}
 
 .verdict{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px;padding:12px 15px;border-radius:var(--r);font-size:15px;font-weight:700}
 .verdict.ok{background:var(--ok-soft);color:var(--ok)}
@@ -300,9 +404,11 @@ footer a{color:var(--ink-2)}
   </div>
   <div class="progline"><i id="progbar"></i></div>
 </div>
+<nav class="nav" aria-label="主要導覽"><div class="nav-in" id="navbar"></div></nav>
 
 <main id="root"></main>
 <footer id="foot"></footer>
+<div class="sitefoot"><div class="sitefoot-in" id="sitefoot"></div></div>
 
 <script src="questions.js"></script>
 <script>
@@ -315,7 +421,7 @@ var LETTERS = ['A','B','C','D'];
 var Q = DB.rows.map(function(r,i){
   return {i:i, exam:DB.exams[r[0]], subject:DB.subjects[r[1]], no:r[2],
           stem:r[3], opts:r[4], ans:r[5], page:r[6], code:r[7], tags:r[8]||[],
-          stale:r[9]||null, oldname:r[10]||null,
+          stale:r[9]||null, oldname:r[10]||null, risk:r[11]||'none',
           id:DB.exams[r[0]]+'|'+DB.subjects[r[1]]+'|'+r[2]};
 });
 var BY_ID = {}; Q.forEach(function(q){BY_ID[q.id]=q;});
@@ -324,29 +430,38 @@ var BY_ID = {}; Q.forEach(function(q){BY_ID[q.id]=q;});
 var ES = (DB.ess||[]).map(function(r){
   return {exam:DB.exams[r[0]], subject:DB.subjects[r[1]], no:r[2], text:r[3], points:r[4],
           page:r[5], code:r[6], tags:r[7]||[],
-          stale:r[8]||null, oldname:r[9]||null,
+          stale:r[8]||null, oldname:r[9]||null, risk:r[10]||'none',
           id:'E|'+DB.exams[r[0]]+'|'+DB.subjects[r[1]]+'|'+r[2]};
 });
 
 /* ═══ 法規時效 ═══
    判定：題目明確引用某部法規，而該法在這場考試之後又修正過。
    修法未必動到被考的條文，但足以讓人避開高風險題。 */
-var LAWS = (DB.laws||[]).map(function(l){ return {name:l[0], amend:l[1]}; });
+var LAWS = (DB.laws||[]).map(function(l){
+  return {name:l[0], amend:l[1], scope:l[2], risk:l[3]};
+});
 function rocDate(n){
   n=String(n); return n.slice(0,3)+'/'+n.slice(3,5)+'/'+n.slice(5,7);
 }
-function lawAmend(name){
-  for(var i=0;i<LAWS.length;i++) if(LAWS[i].name===name) return rocDate(LAWS[i].amend);
-  return '';
+function lawInfo(name){
+  for(var i=0;i<LAWS.length;i++) if(LAWS[i].name===name) return LAWS[i];
+  return null;
 }
-function isStale(q){ return !!((q.stale&&q.stale.length)||(q.oldname&&q.oldname.length)); }
+var RISK_ORDER={none:0,low:1,mid:2,high:3};
+var RISK_LABEL={low:'影響小',mid:'留意',high:'高風險'};
+function isStale(q){ return RISK_ORDER[q.risk||'none']>0; }
+function riskAtLeast(q,lvl){ return RISK_ORDER[q.risk||'none']>=RISK_ORDER[lvl]; }
 function staleText(q){
   var bits=[];
-  (q.stale||[]).forEach(function(n){ bits.push(n+'（'+lawAmend(n)+' 修正）'); });
+  (q.stale||[]).forEach(function(n){
+    var L=lawInfo(n);
+    bits.push(n+'　'+(L?rocDate(L.amend)+' '+L.scope:'已修正'));
+  });
   (q.oldname||[]).forEach(function(n){ bits.push(n+'已更名'); });
   return bits.join('；');
 }
 var STALE_N = Q.filter(isStale).length;
+var HIGH_N  = Q.filter(function(q){return q.risk==='high';}).length;
 
 /* ═══ 考點 ═══ */
 var CONS = (DB.cons||[]).map(function(c,i){ return {i:i, cat:c[0], name:c[1]}; });
@@ -404,12 +519,77 @@ function ansText(q){ return q.ans.split('').join('、'); }
 
 var armed={};   /* 二次確認用的暫時狀態 */
 var root=document.getElementById('root'), foot=document.getElementById('foot');
+
+/* ═══ 科目色彩 ═══ */
+function subVar(name){
+  var i=DB.subjects.indexOf(name);
+  return i<0? 'var(--accent)' : 'var(--s'+i+')';
+}
+function subVarSoft(name){
+  var i=DB.subjects.indexOf(name);
+  return i<0? 'var(--accent-soft)' : 'var(--s'+i+'b)';
+}
+function subStyle(name){ return '--sc:'+subVar(name)+';--scb:'+subVarSoft(name); }
+function subTag(name){
+  return el('span',{cls:'subtag',style:subStyle(name),text:name});
+}
 var bar={timer:document.getElementById('timer'), prog:document.getElementById('progbar'), meta:document.getElementById('barmeta')};
 function setProg(p){ bar.prog.style.width=(p*100)+'%'; }
+var CURRENT='home';
 function show(nodes,wide){
   root.className = wide?'wide':'';
   root.innerHTML=''; var s=el('div',{cls:'stack'},nodes); root.appendChild(s);
   window.scrollTo(0,0);
+  drawNav();
+}
+
+/* ═══ 導覽列 ═══ */
+var NAV=[
+  {id:'home',  label:'首頁',     go:function(){ CURRENT='home';  viewHome(); }},
+  {id:'drill', label:'刷題',     go:function(){ CURRENT='drill'; viewSetup(); }},
+  {id:'essay', label:'申論題',   go:function(){ CURRENT='essay'; cfg.type='essay'; viewSetup(); }},
+  {id:'notes', label:'錯題筆記', go:function(){ CURRENT='notes'; viewNotes(); }},
+  {id:'plan',  label:'備考規劃', go:function(){ CURRENT='plan';  viewPlan(); }},
+  {id:'search',label:'題庫搜尋', go:function(){ CURRENT='search';viewSearch(); }}
+];
+function drawNav(){
+  var bar=document.getElementById('navbar');
+  bar.innerHTML='';
+  NAV.forEach(function(n){
+    bar.appendChild(el('a',{role:'link',tabindex:'0',text:n.label,
+      'aria-current': CURRENT===n.id? 'page':null,
+      onclick:function(){ leave(); n.go(); },
+      onkeydown:function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); leave(); n.go(); } }}));
+  });
+}
+function leave(){ if(tick){clearInterval(tick);tick=null;} S=null; ES_S=null; bar.timer.hidden=true; }
+
+/* ═══ 站台頁尾 ═══ */
+function drawSiteFoot(){
+  var f=document.getElementById('sitefoot');
+  if(f.childNodes.length) return;
+  f.appendChild(el('div',{},[
+    el('h5',{text:'社工師刷題本'}),
+    el('div',{text:'專技高考社會工作師 106–115 年考古題庫，'
+      +Q.length.toLocaleString()+' 題測驗題與 '+ES.length+' 題申論題。'})
+  ]));
+  f.appendChild(el('div',{},[
+    el('h5',{text:'資料來源'}),
+    el('div',{},[el('a',{href:'https://wwwq.moex.gov.tw/',target:'_blank',rel:'noopener',
+      text:'考選部考畢試題查詢平臺'})]),
+    el('div',{},[el('a',{href:'https://wwwc.moex.gov.tw/',target:'_blank',rel:'noopener',
+      text:'考選部全球資訊網'})]),
+    el('div',{},[el('a',{href:'https://law.moj.gov.tw/',target:'_blank',rel:'noopener',
+      text:'全國法規資料庫'})])
+  ]));
+  f.appendChild(el('div',{},[
+    el('h5',{text:'使用說明'}),
+    el('div',{text:'作答紀錄、錯題本與申論草稿只存在你自己的瀏覽器，不會上傳，也不會跨裝置同步。'})
+  ]));
+  f.appendChild(el('div',{},[
+    el('h5',{text:'免責'}),
+    el('div',{text:'本站為備考用途整理，不代表考選部立場。法規題可能因修法而與現行規定不同，作答請以現行條文為準。'})
+  ]));
 }
 
 /* ═══ 設定 ═══ */
@@ -417,10 +597,12 @@ var cfg = store.set || {type:'mc', mode:'practice', subjects:[], exams:[], count
 if(!Array.isArray(cfg.subjects)) cfg.subjects=[];
 if(!Array.isArray(cfg.exams)) cfg.exams=[];
 if(!cfg.type) cfg.type='mc';
-if(cfg.hideStale===undefined) cfg.hideStale=true;   /* 預設不出已修法的題目 */
+/* 預設只擋高風險（全文修正或更名）；只改一兩條的低風險題仍然出，標示提醒 */
+if(!cfg.lawFilter) cfg.lawFilter = (cfg.hideStale===false? 'off' : 'high');
 
 function inScope(q){
-  if(cfg.hideStale && isStale(q)) return false;
+  if(cfg.lawFilter==='high' && q.risk==='high') return false;
+  if(cfg.lawFilter==='all' && isStale(q)) return false;
   if(cfg.subjects.length && cfg.subjects.indexOf(q.subject)<0) return false;
   if(cfg.exams.length && cfg.exams.indexOf(q.exam)<0) return false;
   return true;
@@ -466,74 +648,161 @@ function draftCount(){ var n=0; for(var k in store.drafts) if((store.drafts[k]||
 
 /* ═══ 首頁 ═══ */
 function viewHome(){
+  leave(); setProg(0); bar.meta.textContent='106–115';
+  CURRENT='home';
+  var p=store.plan||defaultPlan(); store.plan=p;
+  var r=computePlan(p);
+  var wc=wrongCount();
+  var tgt=TARGETS.filter(function(t){return t.id===p.target;})[0];
+
+  /* Hero */
+  var hero=el('div',{cls:'hero2'},[
+    el('div',{},[
+      el('div',{cls:'eyebrow',text:'考選部 106–115 年考古題 · 20 次考試'}),
+      el('h1',{text:'把十年考古題，一題一題刷熟'}),
+      el('p',{cls:'lead',text:'測驗題與申論題全收，答案採用最新公告之更正答案。'
+        +'錯題會依考點自動聚合成複習筆記，已修法的過期題則預設不出。'}),
+      el('div',{cls:'cta'},[
+        el('button',{cls:'btn',onclick:function(){
+          cfg.type='mc'; cfg.mode='practice'; CURRENT='drill'; viewSetup();
+        }},[document.createTextNode('開始刷題')]),
+        el('button',{cls:'btn ghost',text:'看備考規劃',onclick:function(){CURRENT='plan';viewPlan();}})
+      ])
+    ]),
+    el('div',{cls:'countcard'},[
+      el('div',{cls:'lab',text:'距 '+planTargetName(p)+' 還有'}),
+      el('div',{cls:'d'},[el('b',{text:String(r.calDays)}),el('span',{text:'天'})]),
+      el('div',{cls:'sub',text:(tgt? '考試 '+tgt.date.replace(/-/g,'/')+'　報名 '+tgt.reg+'\n':'')
+        +'今日目標 '+r.need+' 題，已完成 '+r.todayDone+' 題'}),
+      el('div',{cls:'meter'},[el('i',{style:'width:'+Math.min(100,pct(r.todayDone,r.need))+'%'})])
+    ])
+  ]);
+
+  /* 數據帶 */
+  var band=el('div',{cls:'band'},[
+    el('div',{},[el('b',{text:Q.length.toLocaleString()}),el('span',{text:'測驗題'})]),
+    el('div',{},[el('b',{text:String(ES.length)}),el('span',{text:'申論題'})]),
+    el('div',{},[el('b',{text:String(DB.exams.length)}),el('span',{text:'次考試'})]),
+    el('div',{},[el('b',{text:String(CONS.length)}),el('span',{text:'考點索引'})]),
+    el('div',{},[el('b',{text:String(HIGH_N)}),el('span',{text:'高風險過期題已擋'})])
+  ]);
+
+  /* 分科入口：色彩分類的主場 */
+  var cards=el('div',{cls:'subgrid'});
+  DB.subjects.forEach(function(s){
+    var all=Q.filter(function(q){return q.subject===s;});
+    var live=all.filter(function(q){return !isStale(q);}).length;
+    var v=store.subj[s]||[0,0];
+    var done=all.filter(function(q){return store.seen[q.id];}).length;
+    var dropped=(LIVE_SUBJECTS.indexOf(s)<0);
+    /* 該科前三大考點 */
+    var c={};
+    all.forEach(function(q){ q.tags.forEach(function(t){ c[t]=(c[t]|0)+1; }); });
+    var hot=Object.keys(c).sort(function(a,b){return c[b]-c[a];}).slice(0,3)
+             .map(function(t){return conName(+t);});
+
+    cards.appendChild(el('button',{cls:'subcard'+(dropped?' dropped':''),style:subStyle(s),
+      onclick:function(){
+        cfg.type='mc'; cfg.mode='practice'; cfg.subjects=[s]; cfg.exams=[];
+        cfg.count=20; cfg.order='random'; store.set=cfg; save();
+        CURRENT='drill'; startQuiz();
+      }},[
+      el('h3',{text:s}),
+      el('div',{cls:'meta'},[
+        el('span',{cls:'n',text:live.toLocaleString()}),
+        el('span',{text:'題可練'}),
+        v[1]? el('span',{cls:'acc',text:'正確率 '+pct(v[0],v[1])+'%'}):null
+      ]),
+      el('div',{cls:'bar'},[el('i',{style:'width:'+pct(done,all.length)+'%'})]),
+      el('div',{cls:'hot'},[document.createTextNode('高頻考點：'),
+        el('b',{text:hot.join('、')})]),
+      el('div',{cls:'go',text:'直接練 20 題 →'})
+    ]));
+  });
+
+  /* 我的進度 */
+  var mine=null;
+  if(store.total>0){
+    mine=el('div',{cls:'card stack'},[
+      el('div',{cls:'statgrid'},[
+        el('div',{},[el('b',{cls:'num',text:store.total.toLocaleString()}),el('span',{text:'累計作答'})]),
+        el('div',{},[el('b',{cls:'num',text:pct(store.correct,store.total)+'%'}),el('span',{text:'正確率'})]),
+        el('div',{},[el('b',{cls:'num',text:String(wc)}),el('span',{text:'錯題本'})]),
+        el('div',{},[el('b',{cls:'num',text:String(draftCount())}),el('span',{text:'申論草稿'})]),
+        el('div',{},[el('b',{cls:'num',text:r.streak+' 天'}),el('span',{text:'連續達標'})])
+      ]),
+      el('div',{cls:'btn-row'},[
+        wc? el('button',{cls:'btn sm',text:'打開錯題筆記',onclick:function(){CURRENT='notes';viewNotes();}}):null,
+        el('button',{cls:'btn ghost sm',text:armed.reset?'再按一次確定清除':'清除我的紀錄',
+          style:armed.reset?'border-color:var(--no);color:var(--no)':null,
+          onclick:function(){
+            if(!armed.reset){ armed.reset=true; viewHome(); setTimeout(function(){armed.reset=false;},4000); return; }
+            store={total:0,correct:0,subj:{},wrong:{},drafts:{},seen:{},daily:{},plan:p,set:cfg};
+            armed.reset=false; save(); viewHome();
+          }})
+      ])
+    ]);
+  }
+
+  /* 功能介紹 */
+  function feat(ic,h,txt,go){
+    return el('button',{cls:'feat',style:'text-align:left;width:100%',onclick:go},[
+      el('div',{cls:'ic',text:ic}), el('h4',{text:h}), el('p',{text:txt})
+    ]);
+  }
+  var feats=el('div',{cls:'feats'},[
+    feat('◎','錯題依考點聚合','答錯「案主自決」，就把題庫裡所有相關考題連同正解一起攤開，'
+      +'而不是只告訴你這題選 C。可複製成純文字帶走。',function(){CURRENT='notes';viewNotes();}),
+    feat('§','法規時效分級','逐條查證 16 部法規改了哪些條文。全文修正的 '
+      +HIGH_N+' 題預設不出；只改一兩條的照出但標示，不會誤砍。',viewLaws),
+    feat('✨','AI 解題指令','一鍵把題目、官方正解、考點與法規狀態組成指令，'
+      +'貼到 Claude 或 ChatGPT 就能得到完整解析與申論批閱。',null),
+    feat('▤','備考規劃','依考選部公告的考試日期倒數，按你各科的實際正確率決定本週主攻哪一科。',
+      function(){CURRENT='plan';viewPlan();}),
+    feat('✎','申論擬答','230 題申論題原文與子題結構，附作答區、字數統計與計時。',
+      function(){CURRENT='essay';cfg.type='essay';viewSetup();})
+  ]);
+
+  var kids=[hero, band];
+  if(mine) kids.push(mine);
+  kids.push(
+    el('div',{},[
+      el('div',{cls:'sechead'},[
+        el('h2',{text:'依科目開始'}),
+        el('p',{text:'點一下直接練 20 題，或用上方「刷題」自訂範圍'})
+      ]),
+      el('div',{style:'height:14px'}), cards
+    ]),
+    el('div',{},[
+      el('div',{cls:'sechead'},[el('h2',{text:'這個題庫跟別人差在哪'})]),
+      el('div',{style:'height:14px'}), feats
+    ])
+  );
+
+  show(kids, true);
+  drawSiteFoot();
+  foot.textContent='';
+}
+
+/* ═══ 刷題設定 ═══ */
+function viewSetup(){
   if(tick){clearInterval(tick);tick=null;}
   S=null; ES_S=null;
   bar.timer.hidden=true; setProg(0); bar.meta.textContent='106–115';
   var wc=wrongCount();
 
   var hero=el('div',{cls:'hero'},[
-    el('h1',{text:'把十年考古題，一題一題刷熟'}),
-    el('p',{cls:'muted',text:'收錄考選部公告之專技高考社會工作師試題，106 至 115 年共 20 次考試（含 106 年第二次補辦卷），測驗題與申論題全收。測驗題答案以最新公告之更正答案為準。'}),
-    el('div',{cls:'figs'},[
-      el('div',{cls:'fig'},[el('b',{text:Q.length.toLocaleString()}),el('span',{text:'測驗題'})]),
-      el('div',{cls:'fig'},[el('b',{text:String(ES.length)}),el('span',{text:'申論題'})]),
-      el('div',{cls:'fig'},[el('b',{text:String(DB.exams.length)}),el('span',{text:'次考試'})]),
-      el('div',{cls:'fig'},[el('b',{text:String(DB.subjects.length)}),el('span',{text:'科目'})])
-    ])
+    el('h1',{text: cfg.type==='essay'? '申論題練習' : '自訂刷題範圍'}),
+    el('p',{cls:'muted',text: cfg.type==='essay'
+      ? '230 題申論題，考選部不公布標準答案。選定範圍後可逐題擬答，內容自動存在本機。'
+      : '選好題型、模式與範圍就可以開始。設定會記住，下次進來直接沿用。'})
   ]);
 
   var kids=[hero];
-
-  /* 倒數與今日進度 */
-  var pr=computePlan(store.plan||defaultPlan());
-  kids.push(el('div',{cls:'card stack'},[
-    el('div',{cls:'eyebrow',text:'距離 '+planTargetName(store.plan||defaultPlan())+' 還有'}),
-    el('div',{cls:'score'},[
-      el('span',{cls:'big',text:String(pr.calDays)}),
-      el('span',{cls:'of',text:'天　·　今日目標 '+pr.need+' 題，已完成 '+pr.todayDone+' 題'})
-    ]),
-    el('div',{cls:'meter'},[el('i',{style:'width:'+Math.min(100,pct(pr.todayDone,pr.need))+'%'})]),
-    el('div',{cls:'btn-row'},[
-      el('button',{cls:'btn ghost sm',text:'打開備考規劃',onclick:viewPlan})
-    ])
-  ]));
-
-  /* 我的進度 */
-  if(store.total>0){
-    var rows=DB.subjects.map(function(s){
-      var v=store.subj[s]; if(!v||!v[1]) return null;
-      return el('div',{},[
-        el('div',{cls:'row'},[ el('div',{cls:'nm',text:s}), el('div',{cls:'pc',text:pct(v[0],v[1])+'%'}) ]),
-        el('div',{cls:'meter'},[el('i',{style:'width:'+pct(v[0],v[1])+'%'})])
-      ]);
-    }).filter(Boolean);
-
-    kids.push(el('div',{cls:'card stack'},[
-      el('div',{cls:'eyebrow',text:'我的進度'}),
-      el('div',{cls:'statgrid'},[
-        el('div',{},[el('b',{cls:'num',text:store.total.toLocaleString()}),el('span',{text:'累計作答'})]),
-        el('div',{},[el('b',{cls:'num',text:pct(store.correct,store.total)+'%'}),el('span',{text:'正確率'})]),
-        el('div',{},[el('b',{cls:'num',text:String(wc)}),el('span',{text:'錯題本'})]),
-        el('div',{},[el('b',{cls:'num',text:String(draftCount())}),el('span',{text:'申論草稿'})])
-      ]),
-      rows.length? el('div',{cls:'rateline'},rows):null,
-      el('div',{cls:'btn-row'},[
-        wc? el('button',{cls:'btn sm',text:'打開錯題筆記',onclick:viewNotes}):null,
-        el('button',{cls:'btn ghost sm',text:armed.reset?'再按一次確定清除':'清除我的紀錄',
-          style:armed.reset?'border-color:var(--no);color:var(--no)':null,
-          onclick:function(){
-            if(!armed.reset){ armed.reset=true; viewHome(); setTimeout(function(){armed.reset=false;},4000); return; }
-            store={total:0,correct:0,subj:{},wrong:{},drafts:{},set:cfg};
-            armed.reset=false; save(); viewHome();
-          }})
-      ])
-    ]));
-  }
-
   /* 模式 */
   function modeBtn(id,title,desc,dis){
     return el('button',{cls:'mode','aria-pressed':cfg.mode===id,disabled:dis,onclick:function(){
-      cfg.mode=id; if(id==='wrong'){cfg.subjects=[];cfg.exams=[];} viewHome();
+      cfg.mode=id; if(id==='wrong'){cfg.subjects=[];cfg.exams=[];} viewSetup();
     }},[el('b',{text:title}),el('span',{text:desc})]);
   }
   var modes=el('div',{cls:'modes'},[
@@ -548,7 +817,7 @@ function viewHome(){
 
   /* 題型 */
   function typeBtn(id,title,desc){
-    return el('button',{cls:'mode','aria-pressed':cfg.type===id,onclick:function(){cfg.type=id;viewHome();}},
+    return el('button',{cls:'mode','aria-pressed':cfg.type===id,onclick:function(){cfg.type=id;viewSetup();}},
       [el('b',{text:title}),el('span',{text:desc})]);
   }
   var types=el('div',{cls:'modes'},[
@@ -560,11 +829,11 @@ function viewHome(){
   function chipRow(list,sel,counter){
     var box=el('div',{cls:'chips'});
     box.appendChild(el('button',{cls:'chip',text:'全部','aria-pressed':sel.length===0,onclick:function(){
-      sel.length=0; viewHome();
+      sel.length=0; viewSetup();
     }}));
     list.forEach(function(v){
       box.appendChild(el('button',{cls:'chip','aria-pressed':sel.indexOf(v)>=0,onclick:function(){
-        var i=sel.indexOf(v); if(i<0) sel.push(v); else sel.splice(i,1); viewHome();
+        var i=sel.indexOf(v); if(i<0) sel.push(v); else sel.splice(i,1); viewSetup();
       }},[ document.createTextNode(v), el('span',{cls:'n',text:String(counter(v))}) ]));
     });
     return box;
@@ -588,7 +857,7 @@ function viewHome(){
   function optRow(label,vals,key,fmt){
     var box=el('div',{cls:'chips'});
     vals.forEach(function(v){
-      box.appendChild(el('button',{cls:'chip mini','aria-pressed':cfg[key]===v,onclick:function(){cfg[key]=v;viewHome();},
+      box.appendChild(el('button',{cls:'chip mini','aria-pressed':cfg[key]===v,onclick:function(){cfg[key]=v;viewSetup();},
         text:fmt?fmt(v):String(v)}));
     });
     return el('div',{cls:'field'},[el('div',{cls:'flabel',text:label}),box]);
@@ -605,17 +874,20 @@ function viewHome(){
       el('div',{cls:'flabel'},[document.createTextNode('法規時效'),
         el('span',{cls:'hint',text:'已核對 '+LAWS.length+' 部主要法規'})]),
       el('div',{cls:'chips'},[
-        el('button',{cls:'chip mini','aria-pressed':cfg.hideStale===true,
-          text:'不出已修法的題（'+STALE_N+' 題）',
-          onclick:function(){ cfg.hideStale=true; viewHome(); }}),
-        el('button',{cls:'chip mini','aria-pressed':cfg.hideStale===false,
-          text:'全部都出，但標警示',
-          onclick:function(){ cfg.hideStale=false; viewHome(); }})
+        el('button',{cls:'chip mini','aria-pressed':cfg.lawFilter==='high',
+          text:'只擋高風險（'+HIGH_N+' 題）',
+          onclick:function(){ cfg.lawFilter='high'; viewSetup(); }}),
+        el('button',{cls:'chip mini','aria-pressed':cfg.lawFilter==='all',
+          text:'凡觸及修法都擋（'+STALE_N+' 題）',
+          onclick:function(){ cfg.lawFilter='all'; viewSetup(); }}),
+        el('button',{cls:'chip mini','aria-pressed':cfg.lawFilter==='off',
+          text:'全部都出，只標警示',
+          onclick:function(){ cfg.lawFilter='off'; viewSetup(); }})
       ])
     ]),
-    el('div',{cls:'notice',text:'判定方式：題目明確引用某部法規，而該法在這場考試之後又修正過，'
-      +'就視為可能過時。修法未必動到被考的條文，所以這是「避開高風險」而不是「這題一定錯」。'
-      +'未列入核對的法規不會被標記。'}),
+    el('div',{cls:'notice',text:'風險依「該次修法改了多少條」分級：全文修正或法規更名列為高風險；'
+      +'只動一兩個條文的列為低風險，題目多半沒受影響，照出但會標示。'
+      +'判定只在題目明確寫出法規名稱時觸發，未列入核對的法規不會被標記。'}),
     el('button',{cls:'btn ghost sm',text:'看法規修正清單',onclick:viewLaws,
       style:'align-self:flex-start'})
   ]);
@@ -645,9 +917,11 @@ function viewHome(){
     ? el('div',{cls:'card stack'},[optRow('出題順序',['random','paper'],'order',
         function(v){return v==='random'?'隨機':'依年度卷序';})])
     : howmany);
-  kids.push(lawbox);
+  if(cfg.type==='mc') kids.push(lawbox);
   kids.push(start);
+  CURRENT = cfg.type==='essay' ? 'essay' : 'drill';
   show(kids);
+  drawSiteFoot();
   foot.innerHTML='題目與答案來源：考選部考畢試題查詢平臺（106–115 年專技高考社會工作師）。本頁僅供練習參考，作答紀錄只存在你自己的瀏覽器裡。';
   cfg && (store.set=cfg, save());
 }
@@ -726,13 +1000,14 @@ function viewQuiz(){
     ]));
   });
 
-  var card=el('div',{cls:'card'},[
+  var card=el('div',{cls:'card',style:'border-left:5px solid '+subVar(q.subject)},[
     el('div',{cls:'qhead'},[
       el('span',{cls:'qno',text:'第 '+(S.at+1)+' 題'}),
-      (S.mode==='exam' && !reveal)? null : el('span',{cls:'src',text:q.exam+' · '+q.subject+' · 第'+q.no+'題'})
+      (S.mode==='exam' && !reveal)? null : subTag(q.subject),
+      (S.mode==='exam' && !reveal)? null : el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
     ]),
-    isStale(q)? el('div',{cls:'warn'},[
-      el('b',{text:'⚠ 已修法'}),
+    isStale(q)? el('div',{cls:'warn','data-risk':q.risk},[
+      el('b',{text:(q.risk==='high'?'⚠ 已修法 · 高風險':q.risk==='low'?'ⓘ 已修法 · 影響小':'⚠ 已修法 · 留意')}),
       el('span',{text:staleText(q)+'。這題出自修法前的考卷，請以現行條文為準。'})
     ]):null,
     el('div',{cls:'stem',text:q.stem}),
@@ -746,6 +1021,7 @@ function viewQuiz(){
       multi(q)? el('span',{cls:'note',text:'（本題公告更正，'+(q.ans.length>3?'一律給分':'答 '+ansText(q)+' 均給分')+'）'}):null
     ]));
     card.appendChild(conTags(q, !ok));
+    card.appendChild(aiPanel(aiPromptMC(q,picked)));
   }
 
   /* 題號盤 */
@@ -843,7 +1119,7 @@ function viewResult(auto){
     list.appendChild(el('div',{cls:'rev','data-ok':ok?'1':'0'},[
       el('div',{cls:'top'},[
         el('span',{cls:'tag '+(p==null?'sk':ok?'ok':'no'),text:p==null?'未作答':ok?'答對':'答錯'}),
-        el('span',{cls:'src',text:srcShort(q)})
+        subTag(q.subject), el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
       ]),
       el('div',{cls:'qt',text:q.stem}),
       el('div',{cls:'ans'},[
@@ -927,8 +1203,8 @@ function viewConcept(idx){
     list.appendChild(el('div',{cls:'rev','data-ok':w?'0':'1'},[
       el('div',{cls:'top'},[
         w? el('span',{cls:'tag no',text:'你錯過'}):null,
-        isStale(q)? el('span',{cls:'tag law',text:'已修法'}):null,
-        el('span',{cls:'src',text:srcShort(q)})
+        isStale(q)? el('span',{cls:'tag law',text:'已修法 · '+(RISK_LABEL[q.risk]||'')}):null,
+        subTag(q.subject), el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
       ]),
       el('div',{cls:'qt',text:q.stem}),
       body,
@@ -944,7 +1220,7 @@ function viewConcept(idx){
       el2.appendChild(el('div',{cls:'rev','data-ok':'1'},[
         el('div',{cls:'top'},[
           el('span',{cls:'pts',text:'申論 '+(q.points||25)+' 分'}),
-          el('span',{cls:'src',text:srcShort(q)})
+          subTag(q.subject), el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
         ]),
         el('div',{cls:'essay',style:'font-size:15px;line-height:1.9',text:q.text})
       ]));
@@ -1008,7 +1284,7 @@ function viewEssay(){
       el('span',{cls:'pts',text:(q.points||25)+' 分'}),
       el('span',{cls:'src',text:q.exam+' · '+q.subject})
     ]),
-    isStale(q)? el('div',{cls:'warn'},[el('b',{text:'⚠ 已修法'}),
+    isStale(q)? el('div',{cls:'warn','data-risk':q.risk},[el('b',{text:'⚠ 已修法 · '+(RISK_LABEL[q.risk]||'')}),
       el('span',{text:staleText(q)+'。擬答請以現行條文為準。'})]):null,
     el('div',{cls:'essay',text:q.text}),
     el('div',{cls:'draft'},[
@@ -1053,12 +1329,126 @@ function viewEssay(){
       ? el('button',{cls:'btn sm',text:'下一題 →',onclick:function(){essayGo(1);}}):null
   ]);
 
+  var aiBox=el('div',{cls:'card stack'},[
+    el('div',{cls:'eyebrow',text:'AI 批閱'}),
+    el('div',{id:'ai-essay-slot'})
+  ]);
+  function refreshAI(){
+    var slot=aiBox.querySelector('#ai-essay-slot');
+    slot.innerHTML='';
+    slot.appendChild(aiPanel(aiPromptEssay(q, ta.value)));
+  }
+  refreshAI();
+  ta.addEventListener('blur',refreshAI);
+
   var note=el('div',{cls:'card'},[
     el('div',{cls:'notice',text:'考選部僅公布申論題題目，不公布標準答案或評分標準；這裡提供的是題目原文與作答空間，擬答內容請自行對照教科書與相關法規查核。'})
   ]);
 
-  show([card,nav,note]);
+  show([card,nav,aiBox,note]);
   foot.innerHTML='申論題共 '+ES.length+' 題（106–115 年）。擬答草稿存在本機瀏覽器，清除瀏覽資料會一併消失。';
+}
+
+/* ═══ AI 解題指令 ═══
+   本站是純靜態網頁，沒有後端也沒有 API 金鑰（放進公開前端等於外流）。
+   所以這裡只負責「組出一份完整的指令」，讓使用者貼到自己的 AI 對話視窗。 */
+var AI_RULES =
+'你是台灣「專技高考社工師」的輔導老師。回答前請在背景完成下列驗證，過程不必輸出：\n'+
+'1. 官方正解以考選部歷屆試題公告答案為唯一基準。\n'+
+'2. 法規一律引用全國法規資料庫「現行有效」版本；若題目出自修法前，必須明講新舊差異。\n'+
+'3. 學理比對台灣主流教科書（林萬億《當代社會工作》、黃源協《社會工作管理》、宋麗玉等）。\n'+
+'4. 禁止幻覺：年份、條號、學者姓名沒有十足把握就不要寫具體數字，改用「現行法規規定」帶過。\n';
+
+var AI_MC_FORMAT =
+'請用以下格式輸出（Markdown）：\n'+
+'### 🎯 選擇題診斷報告\n---\n'+
+'**📊 答題判定**：[🟢 恭喜答對！／🔴 答錯囉！官方正解為 (X)]\n\n'+
+'**💡 核心考點破題（一句話）**：`[專有名詞或法規名稱]`\n\n'+
+'**🔍 選項深度辨析**：\n'+
+'*   ✅ **(正解)**：[為何正確，引學理或法條]\n'+
+'*   ❌ **(錯誤選項)**：[一針見血指出迷思，例如混淆了哪兩個概念]\n（四個選項逐一說明）\n\n'+
+'**📌 考前記憶錨點**：\n> [整理成 3 點好記的條列或口訣]\n';
+
+var AI_ESSAY_FORMAT =
+'請用以下格式輸出（Markdown）：\n'+
+'### 🏆 申論題名師批閱報告\n---\n'+
+'#### 📊 綜合評分與落點\n*   **預估得分**：`[ X / {PT} 分 ]`\n*   **評閱總語**：[2–3 句客觀評價]\n\n'+
+'#### 🩺 答題體檢\n*   🌟 **出彩之處**：[具體點出寫得好的地方]\n'+
+'*   ⚠️ **致命失分點**：[引述原文] ➡️ [為何在考場會被扣分／缺哪個理論或法規支撐]\n\n'+
+'#### ✨ 滿分重構示範\n'+
+'> **一、前言：[小標]**\n> [精準定義關鍵字]\n> \n'+
+'> **二、[核心論述小標]**\n> （一）`[術語]`：[論述]\n> （二）`[術語]`：[論述]\n> \n'+
+'> **三、結語：[小標]**\n> [展現社工倫理與巨觀視野]\n\n'+
+'#### 💡 下一步複習建議：\n[1–2 個具體方向]\n';
+
+function lawBlock(q){
+  if(!isStale(q)) return '';
+  var s='\n【⚠ 法規時效警告】\n本題出自修法前的考卷，涉及：\n';
+  (q.stale||[]).forEach(function(n){
+    var L=lawInfo(n);
+    s+='  · '+n+'：'+(L? rocDate(L.amend)+' 修正，'+L.scope : '已修正')+'\n';
+  });
+  (q.oldname||[]).forEach(function(n){ s+='  · 題目使用舊法名稱「'+n+'」，現行名稱已變更\n'; });
+  s+='風險等級：'+(RISK_LABEL[q.risk]||q.risk)+'\n';
+  s+='請務必先查證現行條文，明確說明「當年答案」與「現行規定」是否一致；'+
+     '若已不同，請指出差異並以現行法為準。\n';
+  return s;
+}
+
+function aiPromptMC(q,pick){
+  var s=AI_RULES+'\n---\n【題目】'+srcShort(q)+'（'+q.subject+'）\n'+q.stem+'\n';
+  LETTERS.forEach(function(L,i){ s+='('+L+') '+q.opts[i]+'\n'; });
+  s+='\n【考選部公告正解】'+ansText(q)+(multi(q)?'（公告更正，多重答案均給分）':'')+'\n';
+  if(pick!=null) s+='【我的作答】'+LETTERS[pick]+'\n';
+  if(q.tags&&q.tags.length) s+='【本站考點標記】'+q.tags.map(conName).join('、')+'\n';
+  s+=lawBlock(q);
+  s+='\n---\n'+AI_MC_FORMAT;
+  return s;
+}
+
+function aiPromptEssay(q,draft){
+  var s=AI_RULES+'\n---\n【申論題】'+srcShort(q)+'（'+q.subject+'，'+(q.points||25)+' 分）\n'+q.text+'\n';
+  if(q.tags&&q.tags.length) s+='\n【本站考點標記】'+q.tags.map(conName).join('、')+'\n';
+  s+=lawBlock(q);
+  s+='\n【我的擬答】\n'+((draft&&draft.trim())? draft : '（尚未作答，請直接示範高分寫法，評分部分略過）');
+  s+='\n\n---\n'+AI_ESSAY_FORMAT.replace('{PT}',String(q.points||25));
+  return s;
+}
+
+/* 複製到剪貼簿；沙箱擋掉時退回「全選手動複製」 */
+function copyText(text,btn,okLabel){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.cssText='position:fixed;left:-9999px;top:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  var done=false;
+  try{ done=document.execCommand('copy'); }catch(e){}
+  if(!done && navigator.clipboard){
+    try{ navigator.clipboard.writeText(text); done=true; }catch(e){}
+  }
+  document.body.removeChild(ta);
+  var old=btn.textContent;
+  btn.textContent = done? (okLabel||'已複製 ✓') : '複製失敗，請用下方文字框';
+  setTimeout(function(){ btn.textContent=old; },2500);
+  return done;
+}
+
+function aiPanel(text){
+  var box=el('textarea',{cls:'noteout',readonly:true,'aria-label':'AI 解題指令',
+    style:'min-height:150px;font-size:12px'});
+  box.value=text;
+  box.hidden=true;
+  var btn=el('button',{cls:'btn ghost sm',text:'✨ 產生 AI 解題指令',onclick:function(e){
+    copyText(text,e.target,'已複製 ✓ 貼到 AI 對話視窗即可');
+    box.hidden=false;
+  }});
+  return el('div',{cls:'aiwrap'},[
+    el('div',{cls:'btn-row'},[btn]),
+    el('div',{cls:'tiny muted',style:'margin-top:6px',
+      text:'本站沒有後端，不會自動呼叫 AI。按下後會把題目、官方正解、考點與法規狀態組成一段指令並複製，貼到 Claude 或 ChatGPT 即可得到解析。'}),
+    box
+  ]);
 }
 
 /* ═══ 法規修正清單 ═══ */
@@ -1069,18 +1459,21 @@ function viewLaws(){
 
   var rows=LAWS.map(function(l){
     var n=Q.filter(function(q){ return q.stale && q.stale.indexOf(l.name)>=0; }).length;
-    return {name:l.name, d:rocDate(l.amend), n:n};
-  });
+    return {name:l.name, d:rocDate(l.amend), n:n, scope:l.scope, risk:l.risk};
+  }).sort(function(a,b){ return RISK_ORDER[b.risk]-RISK_ORDER[a.risk] || b.n-a.n; });
 
   var list=el('div',{cls:'review'});
   rows.forEach(function(r){
-    list.appendChild(el('div',{cls:'rev','data-ok':r.n?'0':'1'},[
+    list.appendChild(el('div',{cls:'rev','data-ok':r.risk==='high'?'0':'1'},[
       el('div',{cls:'top'},[
-        el('span',{cls:'tag law',text:'修正 '+r.d}),
+        el('span',{cls:'tag '+(r.risk==='high'?'no':r.risk==='none'?'ok':'law'),
+          text:r.risk==='none'?'無影響':RISK_LABEL[r.risk]||r.risk}),
         el('span',{style:'font-weight:700;font-size:15.5px',text:r.name}),
         el('span',{cls:'spacer',style:'flex:1'}),
-        el('span',{cls:'src',text:r.n? r.n+' 題受影響':'題庫無過期題'})
-      ])
+        el('span',{cls:'src',text:r.n? r.n+' 題觸及':'題庫無題目引用'})
+      ]),
+      el('div',{cls:'muted',style:'font-size:13.5px;margin-top:4px',
+        text:r.d+'　'+r.scope})
     ]));
   });
 
@@ -1088,10 +1481,12 @@ function viewLaws(){
     el('div',{cls:'card stack'},[
       el('div',{cls:'eyebrow',text:'法規時效核對'}),
       el('p',{cls:'muted',style:'margin:0',
-        text:'下列 '+LAWS.length+' 部法規的最新修正日期，於 2026/9/23 查自全國法規資料庫。'
-          +'題庫中共 '+STALE_N+' 題（占 '+pct(STALE_N,Q.length)+'%）出自這些法規修正前的考卷。'}),
-      el('div',{cls:'notice',text:'只有題目明確寫出法規名稱時才會比對。'
-        +'若題目只談概念而未引用條文，不會被標記；未列入本清單的法規也不會被標記。'
+        text:'下列 '+LAWS.length+' 部法規的最新修正日期與「實際改了哪些條文」，'
+          +'於 2026/9/23 逐條查自全國法規資料庫沿革。題庫中 '+STALE_N+' 題出自修法前的考卷，'
+          +'其中高風險 '+HIGH_N+' 題預設不出。'}),
+      el('div',{cls:'notice',text:'分級標準：全文修正或法規更名列為高風險，修法前的題目整體不可信；'
+        +'只動一兩個條文的列為影響小，多數題目其實沒被改到，照出但會標示。'
+        +'判定只在題目明確寫出法規名稱時觸發；未列入本清單的法規不會被標記。'
         +'法規會持續修正，這份清單有時效，報考前請再確認一次。'}),
       el('div',{cls:'btn-row'},[el('button',{cls:'btn ghost sm',text:'回首頁',onclick:viewHome})])
     ]),
@@ -1257,10 +1652,10 @@ function viewPlan(){
     el('div',{cls:'rateline'},r.subs.map(function(s){
       return el('div',{},[
         el('div',{cls:'row'},[
-          el('div',{cls:'nm',text:s.name}),
+          el('div',{cls:'nm'},[subTag(s.name)]),
           el('div',{cls:'pc',text:s.acc==null?'—':s.acc+'%'})
         ]),
-        el('div',{cls:'meter'},[el('i',{style:'width:'+pct(s.done,s.total)+'%'})]),
+        el('div',{cls:'meter'},[el('i',{style:'width:'+pct(s.done,s.total)+'%;background:'+subVar(s.name)})]),
         el('div',{cls:'tiny muted',style:'margin-top:3px',
           text:'已練 '+s.done+'／'+s.total+' 題'+(s.ans?'　作答 '+s.ans+' 次':'')})
       ]);
@@ -1455,7 +1850,7 @@ function viewNotes(){
         ]));
       });
       body.appendChild(el('div',{cls:'miss'},[
-        isStale(q)? el('div',{cls:'warn'},[el('b',{text:'⚠ 已修法'}),
+        isStale(q)? el('div',{cls:'warn','data-risk':q.risk},[el('b',{text:'⚠ 已修法 · '+(RISK_LABEL[q.risk]||'')}),
           el('span',{text:staleText(q)+'　請以現行條文為準'})]):null,
         el('div',{cls:'qt',text:q.stem}),
         opts,
@@ -1480,7 +1875,7 @@ function viewNotes(){
             el('span',{cls:'a',text:'正解 '+ansText(q)+'：'}),
             document.createTextNode(multi(q)?'（公告更正，均給分）':q.opts[LETTERS.indexOf(q.ans)])
           ]),
-          el('span',{cls:'src',text:srcShort(q)})
+          subTag(q.subject), el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
         ]));
       });
       body.appendChild(el('details',{cls:'padwrap'},[
@@ -1616,8 +2011,8 @@ function viewSearch(){
       });
       out.appendChild(el('div',{cls:'rev','data-ok':isStale(q)?'0':'1'},[
         el('div',{cls:'top'},[
-          isStale(q)? el('span',{cls:'tag law',text:'已修法'}):null,
-          el('span',{cls:'src',text:srcShort(q)})
+          isStale(q)? el('span',{cls:'tag law',text:'已修法 · '+(RISK_LABEL[q.risk]||'')}):null,
+          subTag(q.subject), el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
         ]),
         el('div',{cls:'qt',html:hl(q.stem,kw)}),
         body,

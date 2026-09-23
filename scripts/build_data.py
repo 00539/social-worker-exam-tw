@@ -24,18 +24,19 @@ for q in d:
     rows.append([ei[q['exam']], si[q['subject']], q['no'], q['stem'],
                  [q['options'][k] for k in 'ABCD'], q['answer'],
                  q['page'], q['code'], q['tags'],
-                 q.get('stale') or 0, q.get('oldname') or 0])
+                 q.get('stale') or 0, q.get('oldname') or 0, q.get('risk') or 0])
 rows.sort(key=lambda r: (r[0], r[1], r[2]))
 
 ess = [[ei[q['exam']], si[q['subject']], q['no'], q['text'], q['points'],
         q['page'], q['code'], q['tags'],
-        q.get('stale') or 0, q.get('oldname') or 0] for q in e]
+        q.get('stale') or 0, q.get('oldname') or 0, q.get('risk') or 0] for q in e]
 ess.sort(key=lambda r: (r[0], r[1], r[2]))
 
 from concepts import CONCEPTS
 from lawcheck import LAWS
 cons = [[c[0], c[1]] for c in CONCEPTS]
-laws = sorted([[k, v[0]] for k, v in LAWS.items()], key=lambda x: -x[1])
+laws = sorted([[k, v['amended'], v['scope'], v['risk']] for k, v in LAWS.items()],
+              key=lambda x: -x[1])
 
 payload = {'exams': exams, 'subjects': subs, 'rows': rows, 'ess': ess,
            'cons': cons, 'laws': laws}
