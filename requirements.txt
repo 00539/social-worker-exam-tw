@@ -1,0 +1,5 @@
+# PDF 版面解析（取字元座標與造字區編碼）
+pymupdf>=1.24
+
+# 產生 Word 備考指南
+python-docx>=1.1

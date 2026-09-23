@@ -1,0 +1,22 @@
+# 考選部試題 PDF（約 49 MB，可用 scripts/dl*.ps1 重新下載）
+data/
+
+# 解析中繼檔（可由 extract*.py 重新產生）
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# 編輯器與作業系統
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Word 暫存
+~$*.docx
