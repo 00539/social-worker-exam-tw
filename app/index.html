@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="專技高考社會工作師 106–115 年考古題庫：4,600 題測驗題、230 題申論題，依考點聚合錯題，自動排除已修法的過期題。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%230E757E' stroke-width='5'/%3E%3C/svg%3E">
 <title>社工師刷題本</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +42,12 @@
   --flag:#D5A052; --flag-soft:#2E2413;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.7);
 }
+/* Artifact 平台原本會外掛的基礎重設，獨立網頁要自己補 */
 *{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html{color-scheme:light dark;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;-webkit-text-size-adjust:100%}
 h1,h2,h3{margin:0;text-wrap:balance;font-weight:700;letter-spacing:.01em}
@@ -264,6 +277,8 @@ footer a{color:var(--ink-2)}
   .modes{grid-template-columns:1fr}
 }
 </style>
+</head>
+<body>
 
 <div class="bar">
   <div class="bar-in">
@@ -1652,3 +1667,5 @@ document.getElementById('btn-plan').addEventListener('click',function(){
 viewHome();
 })();
 </script>
+</body>
+</html>
