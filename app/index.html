@@ -284,6 +284,23 @@ main.wide .stack{gap:34px}
 .warn[data-risk="low"] b{color:var(--ink-2)}
 .aiwrap{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-2)}
 
+/* 法規數字速記 */
+.numrows{display:flex;flex-direction:column}
+.numrow{display:grid;grid-template-columns:minmax(120px,190px) 1fr auto;gap:14px;align-items:start;
+  padding:11px 0;border-bottom:1px solid var(--line)}
+.numrow:last-child{border-bottom:none}
+.ni{font-size:13.5px;font-weight:700;color:var(--ink-2);padding-top:2px}
+.nval{font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.7}
+.ntrap{margin-top:5px;font-size:13px;line-height:1.7;color:var(--no);background:var(--no-soft);
+  border-radius:7px;padding:5px 9px}
+.ntrap b{color:var(--no)}
+.nart{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);
+  border-radius:99px;padding:3px 10px;white-space:nowrap}
+@media (max-width:560px){
+  .numrow{grid-template-columns:1fr auto}
+  .numrow .nv{grid-column:1/-1;grid-row:2}
+}
+
 /* 申論擬答架構 */
 .disclaim{display:flex;flex-direction:column;gap:3px;border:1.5px solid var(--flag);background:var(--flag-soft);
   border-radius:var(--r);padding:11px 14px;font-size:13px;line-height:1.75;color:var(--ink)}
@@ -558,6 +575,7 @@ var NAV=[
   {id:'drill', label:'刷題',     go:function(){ CURRENT='drill'; viewSetup(); }},
   {id:'essay', label:'申論題',   go:function(){ CURRENT='essay'; cfg.type='essay'; viewSetup(); }},
   {id:'notes', label:'錯題筆記', go:function(){ CURRENT='notes'; viewNotes(); }},
+  {id:'nums',  label:'法規數字', go:function(){ CURRENT='nums';  viewNums(); }},
   {id:'plan',  label:'備考規劃', go:function(){ CURRENT='plan';  viewPlan(); }},
   {id:'search',label:'題庫搜尋', go:function(){ CURRENT='search';viewSearch(); }}
 ];
@@ -764,6 +782,8 @@ function viewHome(){
       +'而不是只告訴你這題選 C。可複製成純文字帶走。',function(){CURRENT='notes';viewNotes();}),
     feat('§','法規時效分級','逐條查證 16 部法規改了哪些條文。全文修正的 '
       +HIGH_N+' 題預設不出；只改一兩條的照出但標示，不會誤砍。',viewLaws),
+    feat('#','法規數字速記','測驗題最愛考天數、時數、年齡、人數。43 項高頻數字逐條查證並附條號，'
+      +'標出題庫實際出現過的錯誤選項寫法。',function(){CURRENT='nums';viewNums();}),
     feat('✨','AI 解題指令','一鍵把題目、官方正解、考點與法規狀態組成指令，'
       +'貼到 Claude 或 ChatGPT 就能得到完整解析與申論批閱。',null),
     feat('▤','備考規劃','依考選部公告的考試日期倒數，按你各科的實際正確率決定本週主攻哪一科。',
@@ -1438,7 +1458,7 @@ function viewEssay(){
       el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'一、定義與概念　'}),
         document.createTextNode('先界定題目問到的名詞。這段幾乎一定有分，不要跳過。')])]),
       el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'二、理論依據　'}),
-        document.createTextNode('指出所依據的觀點或模式，能點出學者姓名更好；沒把握就寫觀點名稱，不要杜撰人名。')])]),
+        document.createTextNode('指出所依據的觀點、模式或法規。涉及法規時，天數、時數、年齡等數字與條號一定要寫出來，這是閱卷最容易辨認的得分點；學者姓名沒把握就寫觀點名稱，不要杜撰。')])]),
       el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'三、分項回答　'}),
         document.createTextNode('依題目小題順序，用（一）（二）（三）分點作答，不要寫成一整段。')])]),
       el('div',{cls:'also'},[el('div',{},[el('span',{cls:'a',text:'四、連結情境　'}),
@@ -1475,7 +1495,9 @@ var AI_RULES =
 '1. 官方正解以考選部歷屆試題公告答案為唯一基準。\n'+
 '2. 法規一律引用全國法規資料庫「現行有效」版本；若題目出自修法前，必須明講新舊差異。\n'+
 '3. 學理比對台灣主流教科書（林萬億《當代社會工作》、黃源協《社會工作管理》、宋麗玉等）。\n'+
-'4. 禁止幻覺：年份、條號、學者姓名沒有十足把握就不要寫具體數字，改用「現行法規規定」帶過。\n';
+'4. 法規數字是必考重點：天數、時數、年齡、人數、比例、年限一定要寫出並標明條號，'+
+'且必須核對全國法規資料庫現行條文。若題目出自修法前，要指出數字是否已改變（例如陪產假由 5 日改為陪產檢及陪產假 7 日）。\n'+
+'5. 禁止幻覺：無法核對的數字、條號或學者姓名，要明講「此處需查證現行條文」，不可自行推測或編造。\n';
 
 var AI_MC_FORMAT =
 '請用以下格式輸出（Markdown）：\n'+
@@ -1567,6 +1589,74 @@ function aiPanel(text){
       text:'本站沒有後端，不會自動呼叫 AI。按下後會把題目、官方正解、考點與法規狀態組成一段指令並複製，貼到 Claude 或 ChatGPT 即可得到解析。'}),
     box
   ]);
+}
+
+/* ═══ 法規數字速記 ═══
+   社會政策與社會立法 760 題中有 206 題（27%）選項在比數字，且常以「改掉數字」的錯誤選項出題。
+   每筆皆逐條查自全國法規資料庫現行條文並附條號；trap 為題庫實際出現過的錯誤寫法。 */
+function viewNums(){
+  leave(); setProg(0); bar.meta.textContent='法規數字';
+  CURRENT='nums';
+  var nums=DB.nums||[];
+  var kw=(armed.numsKw||'');
+
+  var input=el('input',{id:'nums-search',type:'search',value:kw,
+    placeholder:'搜尋法規或關鍵字，例如：通報、安置、育嬰、72',
+    oninput:function(e){ armed.numsKw=e.target.value; render(); }});
+  var onlyTrap=!!armed.numsTrap;
+  var trapBtn=el('button',{cls:'chip mini','aria-pressed':onlyTrap,
+    text:'只看常考陷阱',onclick:function(){ armed.numsTrap=!armed.numsTrap; viewNums(); }});
+  var out=el('div',{cls:'stack',style:'gap:14px'});
+
+  function render(){
+    var k=(armed.numsKw||'').trim();
+    out.innerHTML='';
+    var groups={}, order=[];
+    nums.forEach(function(n){
+      if(armed.numsTrap && !n[4]) return;
+      if(k && (n[0]+n[1]+n[2]+n[3]+n[4]).indexOf(k)<0) return;
+      if(!groups[n[0]]){ groups[n[0]]=[]; order.push(n[0]); }
+      groups[n[0]].push(n);
+    });
+    if(!order.length){ out.appendChild(el('div',{cls:'empty',text:'沒有符合的項目。'})); return; }
+    order.forEach(function(law){
+      var rows=el('div',{cls:'numrows'});
+      groups[law].forEach(function(n){
+        rows.appendChild(el('div',{cls:'numrow'},[
+          el('div',{cls:'ni',text:n[1]}),
+          el('div',{cls:'nv'},[
+            el('div',{cls:'nval',text:n[2]}),
+            n[4]? el('div',{cls:'ntrap'},[el('b',{text:'常考陷阱　'}),document.createTextNode(n[4])]):null
+          ]),
+          el('div',{cls:'nart',text:n[3]})
+        ]));
+      });
+      out.appendChild(el('div',{cls:'conblk'},[
+        el('header',{},[el('h3',{text:law}),el('span',{cls:'spacer'}),
+          el('span',{cls:'src',text:groups[law].length+' 項'})]),
+        el('div',{cls:'body',style:'padding:6px 16px'},[rows])
+      ]));
+    });
+  }
+
+  var head=el('div',{cls:'card stack'},[
+    el('div',{cls:'eyebrow',text:'法規數字速記'}),
+    el('h2',{style:'font-family:var(--serif);font-size:24px;font-weight:600',
+      text:'天數、時數、年齡、人數——測驗題最愛考的就是這些'}),
+    el('p',{cls:'muted',style:'margin:0',
+      text:'十年題庫的社會政策與社會立法 760 題中，有 206 題（27%）選項就是在比數字，'
+        +'而且常用「把數字改掉」的錯誤選項出題。以下 '+nums.length+' 項於 '+(DB.nums_checked||'')
+        +' 逐條查自全國法規資料庫現行條文並附條號；「常考陷阱」是題庫實際出現過的錯誤寫法。'}),
+    el('div',{cls:'disclaim'},[el('b',{text:'僅供參考，不負法律責任'}),
+      el('span',{text:'法規會再修正，數字以全國法規資料庫現行條文為準。'})]),
+    el('div',{cls:'search'},[input]),
+    el('div',{cls:'chips'},[trapBtn])
+  ]);
+  render();
+  show([head,out]);
+  drawSiteFoot();
+  foot.textContent='通報時限五部法規都是 24 小時；老人福利法本法只寫「應立即處理」，時限規定在子法——這種本法與子法的差別正是考點。';
+  setTimeout(function(){ try{ if(kw) input.focus(); }catch(e){} },30);
 }
 
 /* ═══ 法規修正清單 ═══ */
