@@ -284,6 +284,15 @@ main.wide .stack{gap:34px}
 .warn[data-risk="low"] b{color:var(--ink-2)}
 .aiwrap{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-2)}
 
+/* 申論擬答架構 */
+.disclaim{display:flex;flex-direction:column;gap:3px;border:1.5px solid var(--flag);background:var(--flag-soft);
+  border-radius:var(--r);padding:11px 14px;font-size:13px;line-height:1.75;color:var(--ink)}
+.disclaim b{color:var(--flag);font-size:14px}
+.frame{display:flex;flex-direction:column;gap:14px;margin-top:10px}
+.fr{border-left:3px solid var(--accent);padding:2px 0 2px 14px}
+.fh{font-family:var(--serif);font-weight:600;font-size:16px;margin-bottom:4px}
+.fb{font-size:14.5px;line-height:1.9;color:var(--ink);white-space:pre-line}
+
 .verdict{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px;padding:12px 15px;border-radius:var(--r);font-size:15px;font-weight:700}
 .verdict.ok{background:var(--ok-soft);color:var(--ok)}
 .verdict.no{background:var(--no-soft);color:var(--no)}
@@ -1330,15 +1339,38 @@ function viewEssay(){
   ]);
 
   /* ── 作答參考 ────────────────────────────
-     考選部不公布申論題標準答案，所以這裡不寫「範答」，
-     改為提供可查證的材料：同考點測驗題的官方正解、同主題歷年申論題、通用架構。 */
+     考選部不公布申論題標準答案。有擬答架構的題目先顯示架構（附免責聲明），
+     其後一律附上可查證的材料：同考點測驗題的官方正解、同主題歷年申論題、通用架構。 */
   var refBox=(function(){
     var box=el('div',{cls:'card stack'},[el('div',{cls:'eyebrow',text:'作答參考'})]);
 
-    box.appendChild(el('div',{cls:'notice',
-      text:'考選部僅公布申論題題目，不公布標準答案與評分標準。'
-        +'以下不是範答，是可以查證的材料：同一考點的測驗題官方正解可以直接當知識點核對，'
-        +'歷年同主題申論題可以看出問法變化。'}));
+    var key=q.exam+'|'+q.subject+'|'+q.no;
+    var note=(DB.enotes||{})[key];
+    if(note){
+      box.appendChild(el('div',{cls:'disclaim'},[
+        el('b',{text:'僅供參考，不負法律責任'}),
+        el('span',{text:'考選部不公布申論題標準答案與評分標準。以下擬答架構依社工學理整理，'
+          +'並非官方答案；法規細節請以全國法規資料庫現行條文為準，實際作答請自行判斷。'})
+      ]));
+      var fr=el('div',{cls:'frame'});
+      note.frame.forEach(function(f){
+        fr.appendChild(el('div',{cls:'fr'},[
+          el('div',{cls:'fh',text:f[0]}),
+          el('div',{cls:'fb',text:f[1]})
+        ]));
+      });
+      box.appendChild(el('details',{cls:'padwrap',open:true},[
+        el('summary',{text:'擬答架構（依段落順序作答）'}), fr
+      ]));
+      if(note.trap) box.appendChild(el('div',{cls:'warn','data-risk':'mid'},[
+        el('b',{text:'⚠ 常見失分'}), el('span',{text:note.trap})
+      ]));
+    } else {
+      box.appendChild(el('div',{cls:'notice',
+        text:'考選部僅公布申論題題目，不公布標準答案與評分標準。'
+          +'本題尚無擬答架構；以下是可以查證的材料：同一考點的測驗題官方正解可以直接當知識點核對，'
+          +'歷年同主題申論題可以看出問法變化。'}));
+    }
 
     if(q.tags.length){
       box.appendChild(el('div',{},[
@@ -1369,7 +1401,7 @@ function viewEssay(){
             el('span',{cls:'src',text:srcShort(mq)})
           ]));
         });
-        box.appendChild(el('details',{cls:'padwrap',open:true},[
+        box.appendChild(el('details',{cls:'padwrap',open:!note},[
           el('summary',{text:'同考點測驗題的官方正解（'+picks.length+' 題，可當知識點核對）'}),
           kl
         ]));
