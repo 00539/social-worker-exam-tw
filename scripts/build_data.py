@@ -57,6 +57,17 @@ with open(DST, 'w', encoding='utf-8') as f:
     json.dump(payload, f, ensure_ascii=False, separators=(',', ':'))
     f.write(';')
 
+# 題庫檔網址加上內容雜湊，避免瀏覽器／GitHub Pages 快取造成「新網頁＋舊題庫」
+import hashlib, re
+_h = hashlib.sha1(open(DST, 'rb').read()).hexdigest()[:10]
+_html = os.path.join(APP, 'index.html')
+_t = open(_html, encoding='utf-8').read()
+_t2 = re.sub(r'<script src="questions\.js(\?v=[0-9a-f]+)?"></script>',
+             '<script src="questions.js?v=%s"></script>' % _h, _t)
+if _t2 != _t:
+    open(_html, 'w', encoding='utf-8', newline='\n').write(_t2)
+print('題庫版本', _h)
+
 print('exams', exams)
 print('subjects', subs)
 print('rows', len(rows), '| essays', len(ess))

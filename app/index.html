@@ -97,6 +97,11 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
   border-bottom:2.5px solid transparent;cursor:pointer;transition:color .12s,border-color .12s}
 .nav a:hover{color:var(--ink)}
 .nav a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+/* 手機上不橫捲：捲出畫面外的項目使用者多半不會發現，改成換行排列 */
+@media (max-width:640px){
+  .nav-in{flex-wrap:wrap;overflow-x:visible;gap:0;padding:4px 10px}
+  .nav a{padding:8px 10px;font-size:14px;border-bottom-width:2px}
+}
 
 /* ── 首頁 Hero ──────────────────────── */
 .hero2{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;align-items:center;
@@ -114,6 +119,11 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
 .countcard .d span{font-size:15px;color:var(--accent-ink);font-weight:700}
 .countcard .sub{font-size:12.5px;color:var(--ink-2);line-height:1.7;margin-top:6px;white-space:pre-line}
 .countcard .meter{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+@media (max-width:640px){
+  .hero2{grid-template-columns:1fr;gap:20px;padding-block:20px 16px}
+  .hero2 h1{font-size:28px}
+  .countcard .d b{font-size:46px}
+}
 
 /* 數據帶 */
 .band{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;
@@ -436,7 +446,7 @@ footer a{color:var(--ink-2)}
 <footer id="foot"></footer>
 <div class="sitefoot"><div class="sitefoot-in" id="sitefoot"></div></div>
 
-<script src="questions.js"></script>
+<script src="questions.js?v=fb8cfa3f83"></script>
 <script>
 (function(){
 'use strict';
@@ -1645,8 +1655,9 @@ function viewNums(){
       text:'天數、時數、年齡、人數——測驗題最愛考的就是這些'}),
     el('p',{cls:'muted',style:'margin:0',
       text:'十年題庫的社會政策與社會立法 760 題中，有 206 題（27%）選項就是在比數字，'
-        +'而且常用「把數字改掉」的錯誤選項出題。以下 '+nums.length+' 項於 '+(DB.nums_checked||'')
-        +' 逐條查自全國法規資料庫現行條文並附條號；「常考陷阱」是題庫實際出現過的錯誤寫法。'}),
+        +'而且常用「把數字改掉」的錯誤選項出題。法規項目於 '+(DB.nums_checked||'')
+        +' 逐條查自全國法規資料庫現行條文並附條號；研究方法與人類行為的「學理」項目沒有條號，'
+        +'依據是考選部公告的正確答案，標出年次以便回查。「常考陷阱」是題庫實際出現過的錯誤寫法。'}),
     el('div',{cls:'disclaim'},[el('b',{text:'僅供參考，不負法律責任'}),
       el('span',{text:'法規會再修正，數字以全國法規資料庫現行條文為準。'})]),
     el('div',{cls:'search'},[input]),

@@ -518,3 +518,7 @@ NOTES = {
         '橫向是「跨個案」並置比較。記錯方向等於整題答錯。'),
 
 }
+
+# 各年度擬答分檔維護，於此合併
+from essay_notes_114 import NOTES_114
+NOTES.update(NOTES_114)
