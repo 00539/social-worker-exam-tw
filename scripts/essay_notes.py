@@ -524,3 +524,7 @@ from essay_notes_114 import NOTES_114
 from essay_notes_113 import NOTES_113
 NOTES.update(NOTES_114)
 NOTES.update(NOTES_113)
+from essay_notes_112 import NOTES_112
+from essay_notes_110_111 import NOTES_110_111
+NOTES.update(NOTES_112)
+NOTES.update(NOTES_110_111)
