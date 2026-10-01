@@ -521,4 +521,6 @@ NOTES = {
 
 # 各年度擬答分檔維護，於此合併
 from essay_notes_114 import NOTES_114
+from essay_notes_113 import NOTES_113
 NOTES.update(NOTES_114)
+NOTES.update(NOTES_113)
