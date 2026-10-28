@@ -10,7 +10,7 @@ from docx.oxml.ns import qn
 
 import stats
 
-from paths import DOCS
+from paths import DOCS, APP
 
 OUT = os.path.join(DOCS, '社工師備考指南_十年考古題分析.docx')
 FONT = '微軟正黑體'
@@ -403,13 +403,55 @@ table(['功能', '什麼時候用', '做什麼'],
        ['測驗模式', '模擬期', '整卷計時、作答完才公布，校正節奏'],
        ['申論題', '全期', '題目原文＋擬答空間，自動存檔'],
        ['備考規劃', '每天', '倒數天數、每日題數目標、弱科提示'],
-       ['題庫搜尋', '隨時', '輸入關鍵字，找出所有相關考題']],
+       ['題庫搜尋', '隨時', '輸入關鍵字，找出所有相關考題'],
+       ['學者理論', '打底期', '依出題次數看學者與理論，一鍵練相關題'],
+       ['時事', '衝刺期', '近兩年修法與政策，附考試連結與來源']],
       widths=[3.2, 3.6, 8.2])
 
 para('使用提醒：作答紀錄、錯題本與申論草稿都存在「各人自己的瀏覽器」裡，'
      '換裝置或清除瀏覽資料會消失，也不會互相干擾。'
      '若要保存錯題筆記，請用「複製全文」貼到自己的檔案中。', size=12, after=10)
 
+
+doc.add_page_break()
+
+# ══ 八、學者與理論 ══════════════════════
+import json as _json
+_js = open(os.path.join(APP, 'questions.js'), encoding='utf-8').read()
+_db = _json.loads(_js[_js.index('{'):_js.rindex('}') + 1])
+h1('八、學者與理論（依十年出題次數）')
+para('下表只收 106–115 年考題實際出現過的學者，次數由題幹、選項與申論全文自動比對，'
+     '選項只列出名稱的題目也會計入。本指南不列「出題老師」：考選部不公布命題委員，'
+     '試題依典試法以密件處理，坊間說法無法查證。', after=8)
+_rows = []
+for sc in _db['scholars']:
+    ys = sorted({_db['exams'][_db['rows'][i][0]][:3] for i in sc[7]} |
+                {_db['exams'][_db['ess'][i][0]][:3] for i in sc[8]})
+    _rows.append([sc[0] + '\n' + sc[1], sc[2], sc[3],
+                  '測驗 %d\n申論 %d' % (len(sc[7]), len(sc[8])), '、'.join(ys)])
+table(['學者', '科目', '理論', '次數', '出題年度'], _rows, widths=[3.6, 2.8, 3.8, 1.8, 3.0])
+
+h2('理論重點')
+for sc in _db['scholars']:
+    para(sc[0] + '（' + sc[1] + '）— ' + sc[3], bold=True, after=2)
+    for pt in sc[4]:
+        bullet(pt)
+    para('代表著作：' + '、'.join('《%s》（%s）' % (w[0], w[1]) for w in sc[5]), after=8)
+
+doc.add_page_break()
+
+# ══ 九、時事 ═════════════════════════════
+h1('九、時事與政策動態')
+para('申論題常要求結合臺灣現況。以下 %d 則整理於 %s，摘要為自行改寫，'
+     '政策金額與施行日期會變動，引用前請以原始來源最新公告為準。尚未三讀的草案已註明。'
+     % (len(_db['news']), _db['news_checked']), after=8)
+for n in _db['news']:
+    para(n['date'] + '　' + n['title'], bold=True, after=2)
+    para(n['summary'], after=2)
+    para('考試連結：' + n['angle'], after=2)
+    para('來源：' + n['src'] + '　' + n['url'], after=10)
+
+doc.add_page_break()
 h1('資料來源與說明')
 bullet('題目與答案：考選部考畢試題查詢平臺，106–115 年專技高考社會工作師，共 115 份考卷')
 bullet('測驗題答案以考選部最新公告之更正答案為準；一律給分或多重答案之題目均已標示')
