@@ -446,7 +446,7 @@ footer a{color:var(--ink-2)}
 <footer id="foot"></footer>
 <div class="sitefoot"><div class="sitefoot-in" id="sitefoot"></div></div>
 
-<script src="questions.js?v=53004a3c17"></script>
+<script src="questions.js?v=c81064caa0"></script>
 <script>
 (function(){
 'use strict';
@@ -586,6 +586,8 @@ var NAV=[
   {id:'essay', label:'申論題',   go:function(){ CURRENT='essay'; cfg.type='essay'; viewSetup(); }},
   {id:'notes', label:'錯題筆記', go:function(){ CURRENT='notes'; viewNotes(); }},
   {id:'nums',  label:'法規數字', go:function(){ CURRENT='nums';  viewNums(); }},
+  {id:'scholars',label:'學者理論', go:function(){ CURRENT='scholars'; viewScholars(); }},
+  {id:'news',  label:'時事',     go:function(){ CURRENT='news';  viewNews(); }},
   {id:'plan',  label:'備考規劃', go:function(){ CURRENT='plan';  viewPlan(); }},
   {id:'search',label:'題庫搜尋', go:function(){ CURRENT='search';viewSearch(); }}
 ];
@@ -1668,6 +1670,156 @@ function viewNums(){
   drawSiteFoot();
   foot.textContent='通報時限五部法規都是 24 小時；老人福利法本法只寫「應立即處理」，時限規定在子法——這種本法與子法的差別正是考點。';
   setTimeout(function(){ try{ if(kw) input.focus(); }catch(e){} },30);
+}
+
+/* ═══ 學者與理論 ═══
+   依十年考題實際出現的學者整理，出題次數由 build_data.py 依別名自動比對。
+   不標示「出題老師」：考選部不公布命題委員，命題資料依典試法以密件處理。 */
+var SCH=(DB.scholars||[]).map(function(s){
+  return {name:s[0], zh:s[1], subject:s[2], theory:s[3], points:s[4], works:s[5], video:s[6],
+          mcq:(s[7]||[]).map(function(i){return Q[i];}), esq:(s[8]||[]).map(function(i){return ES[i];})};
+});
+var schq={kw:'',sub:''};
+function examYears(list){
+  var ys={}; list.forEach(function(q){ ys[q.exam.slice(0,3)]=1; });
+  return Object.keys(ys).sort();
+}
+function practiceList(list){
+  var fresh=list.filter(function(q){return !riskAtLeast(q,'high');});
+  if(!fresh.length) return;
+  S={list:shuffle(fresh.slice()),at:0,picks:new Array(fresh.length).fill(null),flags:{},
+     mode:'practice',revealed:{},left:0,started:Date.now()};
+  bar.timer.hidden=true; viewQuiz();
+}
+function essayList(list){
+  var box=el('div',{cls:'review',style:'display:none'});
+  list.forEach(function(q){
+    box.appendChild(el('div',{cls:'rev','data-ok':'1'},[
+      el('div',{cls:'top'},[
+        el('span',{cls:'pts',text:'申論 '+(q.points||25)+' 分'}),
+        el('span',{cls:'src',text:q.exam+' · '+q.subject+' · 第'+q.no+'題'})
+      ]),
+      el('div',{cls:'essay',style:'font-size:15px;line-height:1.9',text:q.text})
+    ]));
+  });
+  return box;
+}
+function viewScholars(){
+  leave(); setProg(0); bar.meta.textContent='學者理論'; CURRENT='scholars';
+  var input=el('input',{type:'search',value:schq.kw,placeholder:'搜尋學者或理論，例如：Erikson、需求、正義',
+    oninput:function(e){ schq.kw=e.target.value; render(); }});
+  var chips=el('div',{cls:'chips'});
+  [''].concat(LIVE_SUBJECTS).forEach(function(s){
+    chips.appendChild(el('button',{cls:'chip mini','aria-pressed':schq.sub===s,text:s||'全部科目',
+      onclick:function(){ schq.sub=s; viewScholars(); }}));
+  });
+  var out=el('div',{cls:'stack',style:'gap:14px'});
+  function render(){
+    var k=schq.kw.trim().toLowerCase();
+    out.innerHTML='';
+    var list=SCH.filter(function(s){
+      if(schq.sub && s.subject!==schq.sub) return false;
+      if(!k) return true;
+      return (s.name+s.zh+s.theory+s.points.join('')).toLowerCase().indexOf(k)>=0;
+    });
+    if(!list.length){ out.appendChild(el('div',{cls:'empty',text:'沒有符合的學者。'})); return; }
+    list.forEach(function(s){
+      var ys=examYears(s.mcq.concat(s.esq));
+      var mine=s.mcq.filter(function(q){return store.wrong[q.id];}).length;
+      var ebox=s.esq.length? essayList(s.esq) : null;
+      var body=el('div',{cls:'body'},[
+        el('div',{style:'font-weight:700;font-size:15px',text:s.theory}),
+        el('ul',{style:'margin:0;padding-left:20px;font-size:14.5px;line-height:1.9'},
+          s.points.map(function(p){return el('li',{text:p});})),
+        el('div',{cls:'muted',style:'font-size:13.5px'},[el('b',{text:'代表著作　'}),
+          document.createTextNode(s.works.map(function(w){return '《'+w[0]+'》（'+w[1]+'）';}).join('、'))]),
+        el('div',{cls:'muted',style:'font-size:13.5px'},[el('b',{text:'出題年度　'}),
+          document.createTextNode(ys.length? ys.join('、')+' 年' : '—')]),
+        el('div',{cls:'btn-row'},[
+          s.mcq.length? el('button',{cls:'btn sm',onclick:function(){ practiceList(s.mcq); }},
+            [document.createTextNode('練相關測驗題'),el('span',{cls:'cnt',text:s.mcq.length+' 題'})]):null,
+          ebox? el('button',{cls:'btn ghost sm',text:'看相關申論題（'+s.esq.length+'）',
+            onclick:function(){ ebox.style.display=ebox.style.display==='none'?'':'none'; }}):null,
+          el('a',{cls:'btn ghost sm',target:'_blank',rel:'noopener',
+            href:'https://www.youtube.com/results?search_query='+encodeURIComponent(s.video),
+            text:'找公開講座影片 ↗'})
+        ]),
+        ebox
+      ]);
+      out.appendChild(el('div',{cls:'conblk'},[
+        el('header',{},[
+          el('h3',{text:s.name}), el('span',{cls:'cat',text:s.zh}), subTag(s.subject),
+          el('span',{cls:'spacer'}),
+          mine? el('span',{cls:'tag no',text:'你錯過 '+mine+' 題'}):null,
+          el('span',{cls:'src',text:'測驗 '+s.mcq.length+(s.esq.length?' · 申論 '+s.esq.length:'')})
+        ]),
+        body
+      ]));
+    });
+  }
+  var head=el('div',{cls:'card stack'},[
+    el('div',{cls:'eyebrow',text:'學者與理論'}),
+    el('h2',{style:'font-family:var(--serif);font-size:24px;font-weight:600',
+      text:'十年考題裡真正出現過的學者，依出題次數排序'}),
+    el('p',{cls:'muted',style:'margin:0',
+      text:'每位學者附理論重點、代表著作與出題年度；「練相關測驗題」會把提到這位學者或其理論的題目抽出來練。'
+        +'出題次數由題幹、選項與申論全文自動比對，選項只列出名稱的題目也會計入。'}),
+    el('div',{cls:'notice',text:'本頁不列「出題老師」：考選部不公布命題委員，試題依典試法以密件處理，'
+      +'坊間「某某老師出題」的說法無法查證。準備方向以實際出過的理論為準最可靠。'
+      +'影片按鈕開啟 YouTube 搜尋結果，請優先選大學、學會或政府機關的公開課程。'}),
+    el('div',{cls:'search'},[input]),
+    chips
+  ]);
+  render();
+  show([head,out]);
+  drawSiteFoot();
+  foot.textContent='社會工作管理已於 115 年停考，該科特有的管理學者未列入。';
+}
+
+/* ═══ 時事 ═══ 每則附來源連結，摘要為自行改寫 */
+var newsq={sub:''};
+function viewNews(){
+  leave(); setProg(0); bar.meta.textContent='時事'; CURRENT='news';
+  var news=DB.news||[];
+  var chips=el('div',{cls:'chips'});
+  [''].concat(LIVE_SUBJECTS).forEach(function(s){
+    chips.appendChild(el('button',{cls:'chip mini','aria-pressed':newsq.sub===s,text:s||'全部科目',
+      onclick:function(){ newsq.sub=s; viewNews(); }}));
+  });
+  var list=el('div',{cls:'review'});
+  var shown=news.filter(function(n){ return !newsq.sub || (n.subjects||[]).indexOf(newsq.sub)>=0; });
+  if(!shown.length) list.appendChild(el('div',{cls:'empty',text:'這個科目目前沒有整理到的時事。'}));
+  shown.forEach(function(n){
+    list.appendChild(el('div',{cls:'rev','data-ok':'1'},[
+      el('div',{cls:'top'},[el('span',{cls:'tag sk',text:n.date})]
+        .concat((n.subjects||[]).map(subTag))
+        .concat([el('span',{cls:'src',text:n.src})])),
+      el('div',{cls:'qt',text:n.title}),
+      el('div',{style:'font-size:14.5px;line-height:1.9;margin-top:6px',text:n.summary}),
+      el('div',{cls:'miss',style:'margin-top:10px;font-size:14px;line-height:1.8;border-left-color:var(--accent);background:var(--accent-soft)'},
+        [el('b',{text:'考試連結　'}),document.createTextNode(n.angle)]),
+      el('div',{cls:'btn-row',style:'margin-top:8px;align-items:center'},[
+        (n.laws||[]).length? el('span',{cls:'muted',style:'font-size:13px',text:'相關法規：'+n.laws.join('、')}):null,
+        el('span',{style:'flex:1'}),
+        el('a',{cls:'btn ghost sm',href:n.url,target:'_blank',rel:'noopener',text:'看原始來源 ↗'})
+      ])
+    ]));
+  });
+  show([
+    el('div',{cls:'card stack'},[
+      el('div',{cls:'eyebrow',text:'時事與政策動態'}),
+      el('h2',{style:'font-family:var(--serif);font-size:24px;font-weight:600',
+        text:'申論題愛結合時事：近兩年的修法、政策與社會事件'}),
+      el('p',{cls:'muted',style:'margin:0',
+        text:'共 '+news.length+' 則，'+(DB.news_checked||'')+' 整理，新到舊排列。每則附「考試連結」，提示可以接到哪個理論、法條或申論架構。'}),
+      el('div',{cls:'disclaim'},[el('b',{text:'僅供參考，不負法律責任'}),
+        el('span',{text:'政策金額與施行日期會變動，引用前請點原始來源確認最新公告。'})]),
+      chips
+    ]),
+    list
+  ]);
+  drawSiteFoot();
+  foot.textContent='摘要為自行改寫，完整內容請見各則原始來源。';
 }
 
 /* ═══ 法規修正清單 ═══ */

@@ -48,9 +48,32 @@ if bad:
 enotes = {k: {'frame': v['frame'], 'trap': v.get('trap', '')} for k, v in NOTES.items()}
 print('申論擬答架構 %d 題 / 共 %d 題' % (len(enotes), len(e)))
 
+# 學者與理論：依 aliases 比對題幹、選項與申論題全文，統計實際出題次數
+import re as _re
+from scholars import SCHOLARS
+def _pat(a):
+    a = _re.escape(a)
+    return _re.compile(r'(?<![A-Za-z])' + a + r'(?![A-Za-z])') if _re.match(r'[A-Za-z]', a) else _re.compile(a)
+schol = []
+for sc in SCHOLARS:
+    pats = [_pat(a) for a in sc['aliases']]
+    exc = sc.get('exclude', [])
+    hit = lambda t: any(p.search(t) for p in pats) and not any(x in t for x in exc)
+    mi = [i for i, r in enumerate(rows) if hit(r[3] + ' ' + ' '.join(r[4]))]
+    ej = [i for i, r in enumerate(ess) if hit(r[3])]
+    schol.append([sc['name'], sc['zh'], sc['subject'], sc['theory'], sc['points'],
+                  [list(w) for w in sc['works']], sc['video'], mi, ej])
+schol.sort(key=lambda x: -(len(x[7]) + 3 * len(x[8])))
+print('學者 %d 位；出題 0 次者：%s' % (len(schol), [x[0] for x in schol if not x[7] and not x[8]]))
+
+from news import NEWS, CHECKED as NEWS_CHECKED
+news = sorted(NEWS, key=lambda n: n['date'], reverse=True)
+print('時事 %d 則' % len(news))
+
 payload = {'exams': exams, 'subjects': subs, 'rows': rows, 'ess': ess,
            'cons': cons, 'laws': laws, 'enotes': enotes,
-           'nums': [list(n) for n in NUMS], 'nums_checked': NUMS_CHECKED}
+           'nums': [list(n) for n in NUMS], 'nums_checked': NUMS_CHECKED,
+           'scholars': schol, 'news': news, 'news_checked': NEWS_CHECKED}
 os.makedirs(os.path.dirname(DST), exist_ok=True)
 with open(DST, 'w', encoding='utf-8') as f:
     f.write('window.__QB=')
