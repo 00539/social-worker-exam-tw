@@ -324,6 +324,15 @@ main.wide .stack{gap:34px}
 .verdict.ok{background:var(--ok-soft);color:var(--ok)}
 .verdict.no{background:var(--no-soft);color:var(--no)}
 .verdict .note{font-weight:400;color:var(--ink-2)}
+.explain{margin-top:12px;padding:13px 16px;border-radius:var(--r);background:var(--accent-soft);border-left:4px solid var(--accent)}
+.explain .eh{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.explain .why{font-size:15px;line-height:1.9}
+.explain .law{margin-top:8px;font-size:13.5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.explain .law a{color:var(--accent);text-decoration:underline}
+.explain .doubt{margin-top:8px;font-size:13.5px;color:var(--flag)}
+.explain .fine{margin-top:8px;font-size:12px;color:var(--ink-2)}
+details.exd{margin-top:8px}
+details.exd summary{cursor:pointer;font-size:13.5px;color:var(--accent)}
 
 .qnav{display:flex;align-items:center;gap:9px;margin-top:18px;flex-wrap:wrap}
 .qnav .spacer{flex:1}
@@ -446,7 +455,7 @@ footer a{color:var(--ink-2)}
 <footer id="foot"></footer>
 <div class="sitefoot"><div class="sitefoot-in" id="sitefoot"></div></div>
 
-<script src="questions.js?v=c81064caa0"></script>
+<script src="questions.js?v=12bc056a3a"></script>
 <script>
 (function(){
 'use strict';
@@ -457,7 +466,7 @@ var LETTERS = ['A','B','C','D'];
 var Q = DB.rows.map(function(r,i){
   return {i:i, exam:DB.exams[r[0]], subject:DB.subjects[r[1]], no:r[2],
           stem:r[3], opts:r[4], ans:r[5], page:r[6], code:r[7], tags:r[8]||[],
-          stale:r[9]||null, oldname:r[10]||null, risk:r[11]||'none',
+          stale:r[9]||null, oldname:r[10]||null, risk:r[11]||'none', ex:r[12]||null,
           id:DB.exams[r[0]]+'|'+DB.subjects[r[1]]+'|'+r[2]};
 });
 var BY_ID = {}; Q.forEach(function(q){BY_ID[q.id]=q;});
@@ -796,8 +805,8 @@ function viewHome(){
       +HIGH_N+' 題預設不出；只改一兩條的照出但標示，不會誤砍。',viewLaws),
     feat('#','法規數字速記','測驗題最愛考天數、時數、年齡、人數。'+(DB.nums||[]).length+' 項高頻數字逐條查證並附條號，'
       +'標出題庫實際出現過的錯誤選項寫法。',function(){CURRENT='nums';viewNums();}),
-    feat('✨','AI 解題指令','一鍵把題目、官方正解、考點與法規狀態組成指令，'
-      +'貼到 Claude 或 ChatGPT 就能得到完整解析與申論批閱。',null),
+    feat('💡','每題附解析','作答後立刻顯示為什麼對、其他選項錯在哪，法規題附條號與全國法規資料庫連結。'
+      +'想再深入可一鍵產生 AI 追問指令。',null),
     feat('▤','備考規劃','依考選部公告的考試日期倒數，按你各科的實際正確率決定本週主攻哪一科。',
       function(){CURRENT='plan';viewPlan();}),
     feat('✎','申論擬答','230 題申論題原文與子題結構，附作答區、字數統計與計時。',
@@ -1061,6 +1070,7 @@ function viewQuiz(){
       el('span',{text:ok?'✓ 答對':'✕ 答錯　正確答案：'+ansText(q)}),
       multi(q)? el('span',{cls:'note',text:'（本題公告更正，'+(q.ans.length>3?'一律給分':'答 '+ansText(q)+' 均給分')+'）'}):null
     ]));
+    card.appendChild(explainBox(q));
     card.appendChild(conTags(q, !ok));
     card.appendChild(aiPanel(aiPromptMC(q,picked)));
   }
@@ -1168,6 +1178,7 @@ function viewResult(auto){
         el('div',{},[el('span',{cls:'k',text:'正確答案'}),
           el('span',{text:ansText(q)+'　'+(multi(q)?'（公告更正，'+(q.ans.length>3?'一律給分':'均給分')+'）':q.opts[LETTERS.indexOf(q.ans)])})])
       ]),
+      ok? null : explainBox(q),
       ok? null : conTags(q,false)
     ]));
   });
@@ -1185,6 +1196,30 @@ function viewResult(auto){
 
   show([head,acts,el('div',{cls:'eyebrow',text:'逐題檢討'}),list]);
   foot.textContent='答錯與未作答的題目已收進錯題本，並依考點整理進「錯題筆記」。';
+}
+
+/* ═══ 解析 ═══ 由 AI 依官方正解撰寫，法條附全國法規資料庫連結供核對 */
+function lawLink(name){
+  return 'https://law.moj.gov.tw/Law/LawSearchResult.aspx?ty=ONEBAR&kw='+encodeURIComponent(name);
+}
+function explainBox(q){
+  if(!q.ex) return el('div',{cls:'explain'},[
+    el('div',{cls:'eh',text:'解析'}),
+    el('div',{cls:'why muted',text:'這題還沒有解析（社會工作管理 115 年起停考，未撰寫）。可用下方「AI 追問指令」。'})]);
+  var why=q.ex[0], law=q.ex[1], doubt=q.ex[2];
+  var laws=[], seen={};
+  (law||'').split(/[、，,；;]/).forEach(function(t){
+    var n=t.trim().replace(/第.*$/,'').replace(/施行細則$/,'施行細則');
+    if(n && !seen[n]){ seen[n]=1; laws.push(n); }
+  });
+  return el('div',{cls:'explain'},[
+    el('div',{cls:'eh',text:'解析'}),
+    el('div',{cls:'why',text:why}),
+    law? el('div',{cls:'law'},[el('b',{text:'相關法條'}),el('span',{text:law})]
+      .concat(laws.map(function(n){ return el('a',{href:lawLink(n),target:'_blank',rel:'noopener',text:'查「'+n+'」現行條文 ↗'}); }))):null,
+    doubt? el('div',{cls:'doubt',text:'⚑ 正解疑義：'+doubt}):null,
+    el('div',{cls:'fine',text:'解析由 AI 依考選部公告答案撰寫，僅供參考；法規以全國法規資料庫現行條文為準。'})
+  ]);
 }
 
 /* ═══ 考點 ═══ */
@@ -1591,14 +1626,14 @@ function aiPanel(text){
     style:'min-height:150px;font-size:12px'});
   box.value=text;
   box.hidden=true;
-  var btn=el('button',{cls:'btn ghost sm',text:'✨ 產生 AI 解題指令',onclick:function(e){
+  var btn=el('button',{cls:'btn ghost sm',text:'✨ 還有疑問？產生 AI 追問指令',onclick:function(e){
     copyText(text,e.target,'已複製 ✓ 貼到 AI 對話視窗即可');
     box.hidden=false;
   }});
   return el('div',{cls:'aiwrap'},[
     el('div',{cls:'btn-row'},[btn]),
     el('div',{cls:'tiny muted',style:'margin-top:6px',
-      text:'本站沒有後端，不會自動呼叫 AI。按下後會把題目、官方正解、考點與法規狀態組成一段指令並複製，貼到 Claude 或 ChatGPT 即可得到解析。'}),
+      text:'上面的解析看不懂、想再深入時才需要用：會複製一段指令，貼到 Claude 或 ChatGPT 繼續追問。'}),
     box
   ]);
 }
@@ -2232,6 +2267,7 @@ function viewNotes(){
             +(w&&w.n>1?'　已錯 '+w.n+' 次':'')
             +(w&&w.t?'　'+ymd(w.t):'')})
         ]),
+        explainBox(q),
         el('div',{cls:'src',style:'display:block;margin-top:6px',text:srcFull(q)})
       ]));
     });
@@ -2388,7 +2424,8 @@ function viewSearch(){
         el('div',{cls:'qt',html:hl(q.stem,kw)}),
         body,
         isStale(q)? el('div',{cls:'src',style:'display:block;margin-top:6px;color:var(--flag)',
-          text:'⚠ '+staleText(q)}):null
+          text:'⚠ '+staleText(q)}):null,
+        q.ex? el('details',{cls:'exd'},[el('summary',{text:'看解析'}),explainBox(q)]):null
       ]));
     });
     if(hits.length>sq.limit){

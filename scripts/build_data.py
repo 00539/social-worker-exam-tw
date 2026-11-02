@@ -27,6 +27,16 @@ for q in d:
                  q.get('stale') or 0, q.get('oldname') or 0, q.get('risk') or 0])
 rows.sort(key=lambda r: (r[0], r[1], r[2]))
 
+# 測驗題解析（AI 撰寫，僅供參考）：scripts/explain/*.json，key 為「考試|科目|題號」
+import glob
+EXPL = {}
+for fn in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'explain', '*.json'))):
+    EXPL.update(json.load(open(fn, encoding='utf-8')))
+for r in rows:
+    x = EXPL.get('%s|%s|%d' % (exams[r[0]], subs[r[1]], r[2]))
+    r.append([x['why'], x.get('law', ''), x.get('doubt', '')] if x else 0)
+print('測驗題解析 %d 題 / 共 %d 題' % (sum(1 for r in rows if r[12]), len(rows)))
+
 ess = [[ei[q['exam']], si[q['subject']], q['no'], q['text'], q['points'],
         q['page'], q['code'], q['tags'],
         q.get('stale') or 0, q.get('oldname') or 0, q.get('risk') or 0] for q in e]
