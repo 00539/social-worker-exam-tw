@@ -46,6 +46,7 @@ from concepts import CONCEPTS
 from lawcheck import LAWS
 from essay_notes import NOTES
 from lawnums import NUMS, CHECKED as NUMS_CHECKED
+import numgroup
 cons = [[c[0], c[1]] for c in CONCEPTS]
 laws = sorted([[k, v['amended'], v['scope'], v['risk']] for k, v in LAWS.items()],
               key=lambda x: -x[1])
@@ -82,7 +83,7 @@ print('時事 %d 則' % len(news))
 
 payload = {'exams': exams, 'subjects': subs, 'rows': rows, 'ess': ess,
            'cons': cons, 'laws': laws, 'enotes': enotes,
-           'nums': [list(n) for n in NUMS], 'nums_checked': NUMS_CHECKED,
+           'nums': [list(n) for n in NUMS], 'numgroups': numgroup.group(NUMS), 'nums_checked': NUMS_CHECKED,
            'scholars': schol, 'news': news, 'news_checked': NEWS_CHECKED}
 os.makedirs(os.path.dirname(DST), exist_ok=True)
 with open(DST, 'w', encoding='utf-8') as f:

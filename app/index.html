@@ -301,6 +301,11 @@ main.wide .stack{gap:34px}
 .numrow:last-child{border-bottom:none}
 .ni{font-size:13.5px;font-weight:700;color:var(--ink-2);padding-top:2px}
 .nval{font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.7}
+.nlaw{font-size:12px;color:var(--ink-2);font-weight:400;margin-bottom:2px}
+.nhit{color:var(--accent)}
+.quickline{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:7px 2px;font:inherit;font-size:14px;line-height:1.7;color:var(--ink);cursor:pointer}
+.quickline:hover{background:var(--accent-soft)}
+.quickline b{color:var(--accent);display:inline-block;min-width:72px}
 .ntrap{margin-top:5px;font-size:13px;line-height:1.7;color:var(--no);background:var(--no-soft);
   border-radius:7px;padding:5px 9px}
 .ntrap b{color:var(--no)}
@@ -455,7 +460,7 @@ footer a{color:var(--ink-2)}
 <footer id="foot"></footer>
 <div class="sitefoot"><div class="sitefoot-in" id="sitefoot"></div></div>
 
-<script src="questions.js?v=12bc056a3a"></script>
+<script src="questions.js?v=0a96e1349d"></script>
 <script>
 (function(){
 'use strict';
@@ -1655,35 +1660,95 @@ function viewNums(){
     text:'只看常考陷阱',onclick:function(){ armed.numsTrap=!armed.numsTrap; viewNums(); }});
   var out=el('div',{cls:'stack',style:'gap:14px'});
 
-  function render(){
+  var byNum=armed.numsBy!=='law';
+  var modeChips=el('div',{cls:'chips'},[
+    el('button',{cls:'chip mini','aria-pressed':byNum,text:'依數字（同數字放一起）',
+      onclick:function(){ armed.numsBy='num'; viewNums(); }}),
+    el('button',{cls:'chip mini','aria-pressed':!byNum,text:'依法規',
+      onclick:function(){ armed.numsBy='law'; viewNums(); }}),
+    trapBtn
+  ]);
+
+  function keep(n){
     var k=(armed.numsKw||'').trim();
-    out.innerHTML='';
+    if(armed.numsTrap && !n[4]) return false;
+    return !k || (n[0]+n[1]+n[2]+n[3]+n[4]).indexOf(k)>=0;
+  }
+  function numRow(n,showLaw,mark){
+    var val=el('div',{cls:'nval'});
+    if(mark){
+      n[2].split(mark).forEach(function(part,i){
+        if(i) val.appendChild(el('b',{cls:'nhit',text:mark}));
+        val.appendChild(document.createTextNode(part));
+      });
+    } else val.textContent=n[2];
+    return el('div',{cls:'numrow'},[
+      el('div',{cls:'ni'},[showLaw? el('div',{cls:'nlaw',text:n[0]}):null, document.createTextNode(n[1])]),
+      el('div',{cls:'nv'},[val,
+        n[4]? el('div',{cls:'ntrap'},[el('b',{text:'常考陷阱　'}),document.createTextNode(n[4])]):null]),
+      el('div',{cls:'nart',text:n[3]})
+    ]);
+  }
+  function block(title,sub,rows,hot){
+    return el('div',{cls:'conblk'},[
+      el('header',{},[el('h3',{text:title}),
+        hot? el('span',{cls:'tag no',text:'易混'}):null,
+        el('span',{cls:'spacer'}), el('span',{cls:'src',text:sub})]),
+      el('div',{cls:'body',style:'padding:6px 16px'},[rows])
+    ]);
+  }
+  var SHORT={'兒童及少年福利與權益保障法':'兒少權法','家庭暴力防治法':'家暴法','性侵害犯罪防治法':'性侵法',
+    '身心障礙者權益保障法':'身權法','兒童及少年性剝削防制條例':'性剝削條例','性別平等工作法':'性工法',
+    '特殊境遇家庭扶助條例':'特境條例','長期照顧服務法':'長服法','長期照顧服務機構法人條例':'長照法人條例',
+    '兒童及少年未來教育與發展帳戶條例':'兒少帳戶條例','身心障礙者權利公約施行法':'CRPD施行法',
+    '公益勸募條例':'勸募條例','志願服務法':'志服法','國民年金法':'國年法','社會救助法':'社救法',
+    '社會工作師法':'社工師法','精神衛生法':'精衛法','老人福利法':'老福法'};
+  function shortLaw(n){ return SHORT[n]||n; }
+  function renderByNum(){
+    var cat=null, any=false, blocks=[];
+    /* 速覽：多部法規共用的數字，一行看完 */
+    var quick=el('div',{cls:'card stack',style:'gap:6px'},[el('div',{cls:'eyebrow',text:'易混數字速覽 · 點一下跳到該組'})]);
+    (DB.numgroups||[]).forEach(function(g){
+      var items=g[2].map(function(i){return nums[i];}).filter(keep);
+      var laws=[]; items.forEach(function(n){ if(laws.indexOf(n[0])<0) laws.push(n[0]); });
+      if(laws.length<2) return;
+      quick.appendChild(el('button',{cls:'quickline',onclick:function(){
+        var b=document.getElementById('ng-'+g[0]); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});
+      }},[el('b',{text:g[0]}),document.createTextNode('　'+items.map(function(n){return shortLaw(n[0])+'·'+n[1];}).join('、'))]));
+    });
+    if(quick.children.length>1) out.appendChild(quick);
+    (DB.numgroups||[]).forEach(function(g){
+      var items=g[2].map(function(i){return nums[i];}).filter(keep);
+      if(!items.length) return;
+      any=true;
+      if(g[1]!==cat){ cat=g[1]; out.appendChild(el('div',{cls:'eyebrow',style:'margin-top:8px',text:cat})); }
+      var laws={}; items.forEach(function(n){ laws[n[0]]=1; });
+      var nl=Object.keys(laws).length;
+      var rows=el('div',{cls:'numrows'});
+      items.forEach(function(n){ rows.appendChild(numRow(n,true,g[0])); });
+      var b=block(g[0], items.length+' 項'+(nl>1?' · '+nl+' 部法規':''), rows, nl>1);
+      b.id='ng-'+g[0]; b.style.scrollMarginTop='80px';
+      out.appendChild(b);
+    });
+    if(!any) out.appendChild(el('div',{cls:'empty',text:'沒有符合的項目。'}));
+  }
+  function renderByLaw(){
     var groups={}, order=[];
     nums.forEach(function(n){
-      if(armed.numsTrap && !n[4]) return;
-      if(k && (n[0]+n[1]+n[2]+n[3]+n[4]).indexOf(k)<0) return;
+      if(!keep(n)) return;
       if(!groups[n[0]]){ groups[n[0]]=[]; order.push(n[0]); }
       groups[n[0]].push(n);
     });
     if(!order.length){ out.appendChild(el('div',{cls:'empty',text:'沒有符合的項目。'})); return; }
     order.forEach(function(law){
       var rows=el('div',{cls:'numrows'});
-      groups[law].forEach(function(n){
-        rows.appendChild(el('div',{cls:'numrow'},[
-          el('div',{cls:'ni',text:n[1]}),
-          el('div',{cls:'nv'},[
-            el('div',{cls:'nval',text:n[2]}),
-            n[4]? el('div',{cls:'ntrap'},[el('b',{text:'常考陷阱　'}),document.createTextNode(n[4])]):null
-          ]),
-          el('div',{cls:'nart',text:n[3]})
-        ]));
-      });
-      out.appendChild(el('div',{cls:'conblk'},[
-        el('header',{},[el('h3',{text:law}),el('span',{cls:'spacer'}),
-          el('span',{cls:'src',text:groups[law].length+' 項'})]),
-        el('div',{cls:'body',style:'padding:6px 16px'},[rows])
-      ]));
+      groups[law].forEach(function(n){ rows.appendChild(numRow(n,false,null)); });
+      out.appendChild(block(law, groups[law].length+' 項', rows, false));
     });
+  }
+  function render(){
+    out.innerHTML='';
+    if(byNum) renderByNum(); else renderByLaw();
   }
 
   var head=el('div',{cls:'card stack'},[
@@ -1698,7 +1763,9 @@ function viewNums(){
     el('div',{cls:'disclaim'},[el('b',{text:'僅供參考，不負法律責任'}),
       el('span',{text:'法規會再修正，數字以全國法規資料庫現行條文為準。'})]),
     el('div',{cls:'search'},[input]),
-    el('div',{cls:'chips'},[trapBtn])
+    modeChips,
+    byNum? el('div',{cls:'tiny muted',text:'同一個數字的規定排在一起，例如「24 小時」底下是所有規定 24 小時的法規；標「易混」的是多部法規共用同一個數字。'
+      +'一項規定含兩個數字（如 72 小時、3 個月）會在兩組都出現。學理項目只在「依法規」檢視。'}):null
   ]);
   render();
   show([head,out]);
