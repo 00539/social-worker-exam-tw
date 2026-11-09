@@ -460,7 +460,7 @@ footer a{color:var(--ink-2)}
 <footer id="foot"></footer>
 <div class="sitefoot"><div class="sitefoot-in" id="sitefoot"></div></div>
 
-<script src="questions.js?v=0a96e1349d"></script>
+<script src="questions.js?v=03241ebb8c"></script>
 <script>
 (function(){
 'use strict';
@@ -475,6 +475,16 @@ var Q = DB.rows.map(function(r,i){
           id:DB.exams[r[0]]+'|'+DB.subjects[r[1]]+'|'+r[2]};
 });
 var BY_ID = {}; Q.forEach(function(q){BY_ID[q.id]=q;});
+/* 修法題：依現行法的答案 [status, current, now, law]；這些題不出題，改在「修法題」頁直接看 */
+Q.forEach(function(q){ var f=(DB.lawfix||{})[q.id]; if(f) q.fix={status:f[0],current:f[1],now:f[2],law:f[3]}; });
+/* 自編模擬題：[科目序, 題幹, 選項, 答案, 解析, 法條, 出題依據, 考點] */
+var MQ = (DB.mock||[]).map(function(r,i){
+  var sub=DB.subjects[r[0]];
+  return {i:i, exam:'模擬題', subject:sub, no:0, stem:r[1], opts:r[2], ans:r[3], page:'', code:'',
+          tags:r[7]||[], stale:null, oldname:null, risk:'none', ex:[r[4],r[5]||'',''], basis:r[6], mock:true};
+});
+(function(){ var c={}; MQ.forEach(function(q){ c[q.subject]=(c[q.subject]|0)+1; q.no=c[q.subject];
+  q.id='M|'+q.subject+'|'+q.no; BY_ID[q.id]=q; }); })();
 
 /* 申論題（考選部不公布標準答案） */
 var ES = (DB.ess||[]).map(function(r){
@@ -525,9 +535,10 @@ function conName(i){ return CONS[i]? CONS[i].name : ''; }
 function fileName(q){ return q.exam+'_'+q.subject+'_試題.pdf'; }
 function srcShort(q){ return q.exam+' · '+q.subject+' · 第'+q.no+'題'; }
 function srcFull(q){
+  if(q.mock) return '本站自編模擬題 · '+q.subject+' · 第'+q.no+'題（'+q.basis+'）';
   return srcShort(q)+'（試題代號 '+q.code+'，原卷第 '+q.page+' 頁）';
 }
-function srcPath(q){ return '社工師歷屆試題\\'+q.exam+'\\'+fileName(q); }
+function srcPath(q){ return q.mock? '依近五年出題趨勢與時事自編，非考選部試題' : '社工師歷屆試題\\'+q.exam+'\\'+fileName(q); }
 
 /* ═══ 儲存（每位使用者的瀏覽器本機） ═══ */
 var KEY='swq.v2';
@@ -598,7 +609,9 @@ var NAV=[
   {id:'home',  label:'首頁',     go:function(){ CURRENT='home';  viewHome(); }},
   {id:'drill', label:'刷題',     go:function(){ CURRENT='drill'; viewSetup(); }},
   {id:'essay', label:'申論題',   go:function(){ CURRENT='essay'; cfg.type='essay'; viewSetup(); }},
+  {id:'mock',  label:'模擬試題', go:function(){ CURRENT='mock';  viewMock(); }},
   {id:'notes', label:'錯題筆記', go:function(){ CURRENT='notes'; viewNotes(); }},
+  {id:'lawfix',label:'修法題',   go:function(){ CURRENT='lawfix'; viewLawFix(); }},
   {id:'nums',  label:'法規數字', go:function(){ CURRENT='nums';  viewNums(); }},
   {id:'scholars',label:'學者理論', go:function(){ CURRENT='scholars'; viewScholars(); }},
   {id:'news',  label:'時事',     go:function(){ CURRENT='news';  viewNews(); }},
@@ -653,16 +666,17 @@ if(!cfg.type) cfg.type='mc';
 /* 預設只擋高風險（全文修正或更名）；只改一兩條的低風險題仍然出，標示提醒 */
 if(!cfg.lawFilter) cfg.lawFilter = (cfg.hideStale===false? 'off' : 'high');
 
+if(cfg.fresh==null) cfg.fresh=true;
 function inScope(q){
-  if(cfg.lawFilter==='high' && q.risk==='high') return false;
-  if(cfg.lawFilter==='all' && isStale(q)) return false;
+  if(isStale(q)) return false;   /* 修法前的題目不出，改在「修法題」頁看現行答案 */
   if(cfg.subjects.length && cfg.subjects.indexOf(q.subject)<0) return false;
   if(cfg.exams.length && cfg.exams.indexOf(q.exam)<0) return false;
   return true;
 }
 function pool(){
   return Q.filter(function(q){
-    if(cfg.mode==='wrong' && !store.wrong[q.id]) return false;
+    if(cfg.mode==='wrong') { if(!store.wrong[q.id]) return false; }
+    else if(cfg.fresh && store.seen[q.id]) return false;
     return inScope(q);
   });
 }
@@ -714,7 +728,7 @@ function viewHome(){
       el('div',{cls:'eyebrow',text:'考選部 106–115 年考古題 · 20 次考試'}),
       el('h1',{text:'把十年考古題，一題一題刷熟'}),
       el('p',{cls:'lead',text:'測驗題與申論題全收，答案採用最新公告之更正答案。'
-        +'錯題會依考點自動聚合成複習筆記，已修法的過期題則預設不出。'}),
+        +'每題附解析，寫過的不重複出；已修法的題目不出，直接給現行答案。'}),
       el('div',{cls:'cta'},[
         el('button',{cls:'btn',onclick:function(){
           cfg.type='mc'; cfg.mode='practice'; CURRENT='drill'; viewSetup();
@@ -737,14 +751,14 @@ function viewHome(){
     el('div',{},[el('b',{text:String(ES.length)}),el('span',{text:'申論題'})]),
     el('div',{},[el('b',{text:String(DB.exams.length)}),el('span',{text:'次考試'})]),
     el('div',{},[el('b',{text:String(CONS.length)}),el('span',{text:'考點索引'})]),
-    el('div',{},[el('b',{text:String(HIGH_N)}),el('span',{text:'高風險過期題已擋'})])
+    el('div',{},[el('b',{text:String(MQ.length)}),el('span',{text:'自編模擬題'})])
   ]);
 
   /* 分科入口：色彩分類的主場 */
   var cards=el('div',{cls:'subgrid'});
   DB.subjects.forEach(function(s){
     var all=Q.filter(function(q){return q.subject===s;});
-    var live=all.filter(function(q){return !isStale(q);}).length;
+    var live=all.filter(function(q){return !isStale(q) && !store.seen[q.id];}).length;
     var v=store.subj[s]||[0,0];
     var done=all.filter(function(q){return store.seen[q.id];}).length;
     var dropped=(LIVE_SUBJECTS.indexOf(s)<0);
@@ -763,7 +777,7 @@ function viewHome(){
       el('h3',{text:s}),
       el('div',{cls:'meta'},[
         el('span',{cls:'n',text:live.toLocaleString()}),
-        el('span',{text:'題可練'}),
+        el('span',{text:'題新題可練'}),
         v[1]? el('span',{cls:'acc',text:'正確率 '+pct(v[0],v[1])+'%'}):null
       ]),
       el('div',{cls:'bar'},[el('i',{style:'width:'+pct(done,all.length)+'%'})]),
@@ -806,8 +820,10 @@ function viewHome(){
   var feats=el('div',{cls:'feats'},[
     feat('◎','錯題依考點聚合','答錯「案主自決」，就把題庫裡所有相關考題連同正解一起攤開，'
       +'而不是只告訴你這題選 C。可複製成純文字帶走。',function(){CURRENT='notes';viewNotes();}),
-    feat('§','法規時效分級','逐條查證 16 部法規改了哪些條文。全文修正的 '
-      +HIGH_N+' 題預設不出；只改一兩條的照出但標示，不會誤砍。',viewLaws),
+    feat('§','修法題直接給新答案','出題後法規修正過的 '+STALE_N+' 題不出題，'
+      +'逐題對照全國法規資料庫現行條文，直接告訴你現在的答案。',viewLawFix),
+    feat('✦','自編模擬試題',MQ.length+' 題新題，依近五年出題趨勢、時事與修法出題；可依你的錯題考點挑題。',
+      function(){CURRENT='mock';viewMock();}),
     feat('#','法規數字速記','測驗題最愛考天數、時數、年齡、人數。'+(DB.nums||[]).length+' 項高頻數字逐條查證並附條號，'
       +'標出題庫實際出現過的錯誤選項寫法。',function(){CURRENT='nums';viewNums();}),
     feat('💡','每題附解析','作答後立刻顯示為什麼對、其他選項錯在哪，法規題附條號與全國法規資料庫連結。'
@@ -920,31 +936,18 @@ function viewSetup(){
   var howmany=el('div',{cls:'card stack'},[
     optRow('題數',[10,20,40,0],'count',function(v){return v===0?'全部':v+' 題';}),
     el('hr',{cls:'sep'}),
-    optRow('出題順序',['random','paper'],'order',function(v){return v==='random'?'隨機':'依年度卷序';})
+    optRow('出題順序',['random','paper'],'order',function(v){return v==='random'?'隨機':'依年度卷序';}),
+    cfg.mode==='wrong'? null : el('hr',{cls:'sep'}),
+    cfg.mode==='wrong'? null : optRow('寫過的題目',[true,false],'fresh',function(v){
+      return v?'不再出現（只出新題）':'也可以再出';}),
+    cfg.mode==='wrong'? null : el('div',{cls:'tiny muted',text:'目前已寫過 '+seenCount().toLocaleString()
+      +' 題。答錯的題目會收進錯題本，用「錯題複習」模式重練。'})
   ]);
 
-  /* 法規時效過濾 */
-  var lawbox=el('div',{cls:'card stack'},[
-    el('div',{cls:'field'},[
-      el('div',{cls:'flabel'},[document.createTextNode('法規時效'),
-        el('span',{cls:'hint',text:'已核對 '+LAWS.length+' 部主要法規'})]),
-      el('div',{cls:'chips'},[
-        el('button',{cls:'chip mini','aria-pressed':cfg.lawFilter==='high',
-          text:'只擋高風險（'+HIGH_N+' 題）',
-          onclick:function(){ cfg.lawFilter='high'; viewSetup(); }}),
-        el('button',{cls:'chip mini','aria-pressed':cfg.lawFilter==='all',
-          text:'凡觸及修法都擋（'+STALE_N+' 題）',
-          onclick:function(){ cfg.lawFilter='all'; viewSetup(); }}),
-        el('button',{cls:'chip mini','aria-pressed':cfg.lawFilter==='off',
-          text:'全部都出，只標警示',
-          onclick:function(){ cfg.lawFilter='off'; viewSetup(); }})
-      ])
-    ]),
-    el('div',{cls:'notice',text:'風險依「該次修法改了多少條」分級：全文修正或法規更名列為高風險；'
-      +'只動一兩個條文的列為低風險，題目多半沒受影響，照出但會標示。'
-      +'判定只在題目明確寫出法規名稱時觸發，未列入核對的法規不會被標記。'}),
-    el('button',{cls:'btn ghost sm',text:'看法規修正清單',onclick:viewLaws,
-      style:'align-self:flex-start'})
+  /* 修法題不出題 */
+  var lawbox=el('div',{cls:'notice'},[
+    document.createTextNode('出題後法規已修正的 '+STALE_N+' 題不會出現在刷題裡，改成直接看依現行法的答案。'),
+    el('button',{cls:'btn ghost sm',text:'看修法題新答案 →',onclick:viewLawFix,style:'margin-left:8px'})
   ]);
 
   var take = cfg.count===0? n : Math.min(cfg.count,n);
@@ -959,7 +962,7 @@ function viewSetup(){
       el('button',{cls:'btn ghost',text:'瀏覽題庫',onclick:viewSearch})
     ] : [
       el('button',{cls:'btn',disabled:n===0,onclick:function(){ startQuiz(); }},[
-        document.createTextNode(n===0?'此範圍沒有題目':'開始作答'),
+        document.createTextNode(n===0?(cfg.fresh&&cfg.mode!=='wrong'?'這個範圍的題目都寫過了':'此範圍沒有題目'):'開始作答'),
         n>0? el('span',{cls:'cnt',text:take+' / '+n+' 題'}):null
       ]),
       el('button',{cls:'btn ghost',text:'瀏覽題庫',onclick:viewSearch})
@@ -1210,7 +1213,7 @@ function lawLink(name){
 function explainBox(q){
   if(!q.ex) return el('div',{cls:'explain'},[
     el('div',{cls:'eh',text:'解析'}),
-    el('div',{cls:'why muted',text:'這題還沒有解析（社會工作管理 115 年起停考，未撰寫）。可用下方「AI 追問指令」。'})]);
+    el('div',{cls:'why muted',text:'這題還沒有解析。可用下方「AI 追問指令」。'})]);
   var why=q.ex[0], law=q.ex[1], doubt=q.ex[2];
   var laws=[], seen={};
   (law||'').split(/[、，,；;]/).forEach(function(t){
@@ -1223,7 +1226,9 @@ function explainBox(q){
     law? el('div',{cls:'law'},[el('b',{text:'相關法條'}),el('span',{text:law})]
       .concat(laws.map(function(n){ return el('a',{href:lawLink(n),target:'_blank',rel:'noopener',text:'查「'+n+'」現行條文 ↗'}); }))):null,
     doubt? el('div',{cls:'doubt',text:'⚑ 正解疑義：'+doubt}):null,
-    el('div',{cls:'fine',text:'解析由 AI 依考選部公告答案撰寫，僅供參考；法規以全國法規資料庫現行條文為準。'})
+    q.mock? el('div',{cls:'law'},[el('b',{text:'出題依據'}),el('span',{text:q.basis})]):null,
+    el('div',{cls:'fine',text:q.mock? '本站依近五年趨勢自編的模擬題，非考選部試題，僅供參考；法規以全國法規資料庫現行條文為準。'
+      : '解析由 AI 依考選部公告答案撰寫，僅供參考；法規以全國法規資料庫現行條文為準。'})
   ]);
 }
 
@@ -1968,6 +1973,151 @@ function viewLaws(){
   foot.textContent='資料來源：全國法規資料庫（law.moj.gov.tw）。精神衛生法 111/12/14 修正、113/12/14 施行。';
 }
 
+/* ═══ 模擬試題 ═══ 依近五年考點頻率、時事與修法自編；可依錯題考點挑題 */
+function runList(list,mode){
+  if(!list.length) return;
+  S={list:list,at:0,picks:new Array(list.length).fill(null),flags:{},mode:mode,revealed:{},
+     left: mode==='exam'? Math.round(list.length*90) : 0, started:Date.now()};
+  if(tick) clearInterval(tick);
+  if(mode==='exam'){
+    bar.timer.hidden=false;
+    bar.timer.textContent=mmss(S.left);
+    tick=setInterval(function(){
+      S.left--; bar.timer.textContent=mmss(S.left);
+      bar.timer.setAttribute('data-low', S.left<=300?'1':'0');
+      if(S.left<=0){ clearInterval(tick); tick=null; finish(true); }
+    },1000);
+  } else bar.timer.hidden=true;
+  viewQuiz();
+}
+/* 依錯題考點挑模擬題：錯題的考點越常出現，權重越高；只挑沒寫過的 */
+function mockByWrong(n){
+  var w={};
+  for(var k in store.wrong){ var q=BY_ID[k]; if(q) q.tags.forEach(function(t){ w[t]=(w[t]|0)+1; }); }
+  var scored=MQ.map(function(q){
+    var sc=0; q.tags.forEach(function(t){ sc+=w[t]|0; });
+    return {q:q, sc:sc};
+  }).filter(function(x){ return x.sc>0 && !store.seen[x.q.id]; });
+  shuffle(scored);
+  scored.sort(function(a,b){ return b.sc-a.sc; });
+  return scored.slice(0,n).map(function(x){return x.q;});
+}
+function viewMock(){
+  leave(); setProg(0); bar.meta.textContent='模擬試題'; CURRENT='mock';
+  var wc=wrongCount(), byWrong=mockByWrong(40);
+  var grid=el('div',{cls:'stack',style:'gap:12px'});
+  LIVE_SUBJECTS.forEach(function(s){
+    var all=MQ.filter(function(q){return q.subject===s;});
+    var fresh=all.filter(function(q){return !store.seen[q.id];});
+    if(!all.length) return;
+    var btns=[];
+    var nP=Math.max(1,Math.floor(all.length/40));   /* 餘數併入最後一卷 */
+    for(var i=0;i<nP;i++) (function(pp,j){
+      btns.push(el('button',{cls:'btn sm',onclick:function(){ runList(pp.slice(),'exam'); }},
+        [document.createTextNode('模擬卷 '+'ABCDEFG'.charAt(j)+'（計時）'),el('span',{cls:'cnt',text:pp.length+' 題'})]));
+    })(all.slice(i*40, i===nP-1? all.length : i*40+40), i);
+    btns.push(el('button',{cls:'btn ghost sm',disabled:!fresh.length,
+      text:fresh.length?'練習模式・只出沒寫過的':'這科模擬題都寫過了',
+      onclick:function(){ runList(shuffle(fresh.slice()).slice(0,20),'practice'); }}));
+    grid.appendChild(el('div',{cls:'conblk'},[
+      el('header',{},[el('h3',{text:s}),el('span',{cls:'spacer'}),
+        el('span',{cls:'src',text:all.length+' 題 · 未寫 '+fresh.length})]),
+      el('div',{cls:'body'},[el('div',{cls:'btn-row'},btns)])
+    ]));
+  });
+  show([
+    el('div',{cls:'card stack'},[
+      el('div',{cls:'eyebrow',text:'自編模擬試題'}),
+      el('h2',{style:'font-family:var(--serif);font-size:24px;font-weight:600',
+        text:'依近五年出題趨勢、時事與你的錯題出的新題'}),
+      el('p',{cls:'muted',style:'margin:0',
+        text:'共 '+MQ.length+' 題，每科兩份模擬卷（各 40 題、限時 60 分鐘）。出題比例依 111–115 年各考點實際出題次數分配，'
+          +'約一到兩成結合近兩年時事與 112 年後的新法，約兩成是常考的易混陷阱。每題附解析與出題依據。'}),
+      el('div',{cls:'disclaim'},[el('b',{text:'僅供參考，不負法律責任'}),
+        el('span',{text:'本站自編，非考選部試題；法規以全國法規資料庫現行條文為準。'})])
+    ]),
+    el('div',{cls:'card stack'},[
+      el('div',{cls:'eyebrow',text:'依我的錯題考點出題'}),
+      el('p',{cls:'muted',style:'margin:0',text: wc
+        ? '依你錯題本 '+wc+' 題的考點，挑出同考點、你還沒寫過的模擬題 '+byWrong.length+' 題（錯越多的考點越優先）。'
+        : '錯題本目前是空的。先刷考古題，答錯的題目會依考點決定這裡出哪些模擬題。'}),
+      el('div',{cls:'btn-row'},[
+        el('button',{cls:'btn',disabled:!byWrong.length,onclick:function(){ runList(byWrong.slice(0,20),'practice'); }},
+          [document.createTextNode('練習'),el('span',{cls:'cnt',text:Math.min(20,byWrong.length)+' 題'})]),
+        el('button',{cls:'btn ghost',disabled:byWrong.length<10,onclick:function(){ runList(byWrong.slice(),'exam'); }},
+          [document.createTextNode('整份計時'),el('span',{cls:'cnt',text:byWrong.length+' 題'})])
+      ])
+    ]),
+    grid
+  ]);
+  drawSiteFoot();
+  foot.textContent='寫過的模擬題不會在「只出沒寫過的」與「依錯題考點」中重複出現；答錯的會收進錯題本。';
+}
+
+/* ═══ 修法題：不出題，直接看依現行法的答案 ═══ */
+var lfq={law:''};
+function viewLawFix(){
+  leave(); setProg(0); bar.meta.textContent='修法題'; CURRENT='lawfix';
+  var list=Q.filter(isStale);
+  var laws={}; list.forEach(function(q){ (q.stale||[]).forEach(function(l){ laws[l]=(laws[l]|0)+1; }); });
+  var names=Object.keys(laws).sort(function(a,b){return laws[b]-laws[a];});
+  var chips=el('div',{cls:'chips'});
+  [''].concat(names).forEach(function(n){
+    chips.appendChild(el('button',{cls:'chip mini','aria-pressed':lfq.law===n,
+      onclick:function(){ lfq.law=n; viewLawFix(); }},
+      [document.createTextNode(n||'全部'),el('span',{cls:'n',text:String(n?laws[n]:list.length)})]));
+  });
+  var shown=list.filter(function(q){ return !lfq.law || (q.stale||[]).indexOf(lfq.law)>=0; });
+  var cnt={same:0,changed:0,void:0};
+  list.forEach(function(q){ if(q.fix) cnt[q.fix.status]++; });
+  var LBL={same:['現行答案不變','ok'],changed:['答案已改變','no'],void:['現行法下題目不成立','law']};
+  var out=el('div',{cls:'review'});
+  shown.forEach(function(q){
+    var f=q.fix;
+    var cur=f && f.status!=='void'? f.current : '';
+    var opts=el('div',{cls:'ans'});
+    q.opts.forEach(function(o,k){
+      var L=LETTERS[k], now=cur.indexOf(L)>=0, old=q.ans.indexOf(L)>=0;
+      opts.appendChild(el('div',{},[
+        el('span',{cls:'k',text:(now?'✓ ':'　')+L}),
+        el('span',{text:o+(old&&!now&&f?'　（舊答案）':''),
+          style:now?'font-weight:700;color:var(--ok)':(old&&!now?'color:var(--ink-2);text-decoration:line-through':'color:var(--ink-2)')})
+      ]));
+    });
+    out.appendChild(el('div',{cls:'rev','data-ok':f&&f.status==='same'?'1':'0'},[
+      el('div',{cls:'top'},[
+        f? el('span',{cls:'tag '+LBL[f.status][1],text:LBL[f.status][0]}) : el('span',{cls:'tag sk',text:'整理中'}),
+        subTag(q.subject), el('span',{cls:'src',text:q.exam+' · 第'+q.no+'題'})
+      ]),
+      el('div',{cls:'qt',text:q.stem}),
+      opts,
+      f? el('div',{cls:'explain'},[
+        el('div',{cls:'eh',text: f.status==='void'? '現行規定' : '現行答案：'+f.current+(f.status==='changed'?'（當年公告 '+q.ans+'）':'')}),
+        el('div',{cls:'why',text:f.now}),
+        el('div',{cls:'law'},[el('b',{text:'現行法條'}),el('span',{text:f.law}),
+          el('a',{href:lawLink(f.law.replace(/第.*$/,'')),target:'_blank',rel:'noopener',text:'查現行條文 ↗'})])
+      ]) : el('div',{cls:'muted tiny',text:'當年公告答案 '+q.ans+'；現行答案整理中，請以現行條文為準。'})
+    ]));
+  });
+  show([
+    el('div',{cls:'card stack'},[
+      el('div',{cls:'eyebrow',text:'修法題新答案'}),
+      el('h2',{style:'font-family:var(--serif);font-size:24px;font-weight:600',
+        text:'出題後法規改過的 '+list.length+' 題：不出題，直接看現在的答案'}),
+      el('p',{cls:'muted',style:'margin:0',
+        text:'逐題對照全國法規資料庫現行條文：答案不變 '+cnt.same+' 題、答案改變 '+cnt.changed+' 題、'
+          +'現行法下題目不成立 '+cnt.void+' 題（直接背新規定）。這些題目不會出現在刷題與測驗裡。'}),
+      el('div',{cls:'disclaim'},[el('b',{text:'僅供參考，不負法律責任'}),
+        el('span',{text:'法規會再修正，請以全國法規資料庫現行條文為準。'})]),
+      chips,
+      el('div',{cls:'btn-row'},[el('button',{cls:'btn ghost sm',text:'看各法修正範圍',onclick:viewLaws})])
+    ]),
+    out
+  ]);
+  drawSiteFoot();
+  foot.textContent='現行答案查自全國法規資料庫（law.moj.gov.tw）。';
+}
+
 /* ═══ 備考規劃 ═══ */
 /* 考試日程來源：考選部 116 年專技人員考試期日計畫表 */
 var TARGETS=[
@@ -1977,7 +2127,7 @@ var TARGETS=[
 /* 115 年起應試科目為 5 科專業科目，無普通科目；總成績即 5 科平均 */
 var LIVE_SUBJECTS=['社會工作','社會工作直接服務','社會政策與社會立法','人類行為與社會環境','社會工作研究方法'];
 
-function defaultPlan(){ return {target:'116-1', days:5, mins:60, custom:''}; }
+function defaultPlan(){ return {target:'116-1', days:5, mins:60, custom:'', first:30}; }
 
 function planTargetDate(p){
   if(p.target==='custom' && p.custom) return new Date(p.custom+'T00:00:00');
@@ -1997,13 +2147,22 @@ function computePlan(p){
   var calDays=Math.max(0, Math.round((target-today)/86400000));
   var studyDays=Math.max(1, Math.round(calDays*(p.days/7)));
   var perDay=Math.max(5, Math.round(p.mins));          /* 約 1 題／分鐘 */
+  if(!p.first) p.first=30;
 
-  var pool=Q.filter(function(q){ return LIVE_SUBJECTS.indexOf(q.subject)>=0; });
+  /* 只算會出題的題目：仍列考的 5 科、扣掉修法題 */
+  var pool=Q.filter(function(q){ return LIVE_SUBJECTS.indexOf(q.subject)>=0 && !isStale(q); });
   var unseen=pool.filter(function(q){ return !store.seen[q.id]; }).length;
-  var wrongN=pool.filter(function(q){ return store.wrong[q.id]; }).length;
-  var workload=unseen+wrongN*2;                        /* 錯題預計再刷兩輪 */
+  var wrongN=pool.concat(MQ).filter(function(q){ return store.wrong[q.id]; }).length;
+  var mockLeft=MQ.filter(function(q){ return !store.seen[q.id]; }).length;
+  var workload=unseen+wrongN*2+mockLeft;               /* 錯題再刷兩輪、模擬題一輪 */
   var capacity=studyDays*perDay;
-  var need=Math.ceil(workload/studyDays);
+
+  /* 每日目標：第一輪要在 p.first 天內刷完，之後才是錯題與模擬題 */
+  var firstCal=Math.min(p.first, calDays||p.first);
+  var firstStudy=Math.max(1, Math.round(firstCal*(p.days/7)));
+  var need = unseen>0 ? Math.ceil(unseen/firstStudy)
+                      : Math.ceil((wrongN*2+mockLeft)/Math.max(1,studyDays));
+  var firstEnd=new Date(today); firstEnd.setDate(firstEnd.getDate()+firstCal);
 
   /* 各科狀態 */
   var subs=LIVE_SUBJECTS.map(function(s){
@@ -2020,14 +2179,14 @@ function computePlan(p){
 
   /* 三階段：打底 50%、錯題強化 30%、整卷模擬 20% */
   function addDays(n){ var d=new Date(today); d.setDate(d.getDate()+n); return d; }
-  var p1=Math.round(calDays*0.5), p2=Math.round(calDays*0.8);
+  var p1=firstCal, p2=p1+Math.round(Math.max(0,calDays-p1)*0.6);
   var phases=[
-    {name:'第一階段　分科打底', from:today, to:addDays(p1),
-     what:'依科目把 10 年考古題刷過一輪，重點在看懂解析與建立考點感，不求快。'},
+    {name:'第一階段　第一輪刷完', from:today, to:addDays(p1),
+     what:'每個讀書日 '+need+' 題，把 '+unseen.toLocaleString()+' 題沒寫過的考古題刷完一輪（寫過的不會重複出），每題看完解析。'},
     {name:'第二階段　錯題強化', from:addDays(p1+1), to:addDays(p2),
-     what:'用「錯題筆記」逐個考點掃，同考點題目一次看完；申論題每週手寫 2 題。'},
+     what:'用「錯題複習」把錯題再刷兩輪，「錯題筆記」逐個考點掃；「模擬試題」選「依我的錯題考點」練新題；申論題每週手寫 2 題。'},
     {name:'第三階段　整卷模擬', from:addDays(p2+1), to:target,
-     what:'用測驗模式整卷計時（40 題／60 分鐘），每週至少一科一整卷，校正作答節奏。'}
+     what:'用模擬試題的整卷（40 題／60 分鐘）計時，每週至少一科一整卷，校正作答節奏。'}
   ];
 
   var k=dkey(), todayDone=store.daily[k]|0;
@@ -2045,7 +2204,8 @@ function computePlan(p){
     else if(j>0) break;
   }
 
-  return {calDays:calDays, studyDays:studyDays, perDay:perDay, unseen:unseen, wrongN:wrongN,
+  return {firstCal:firstCal, firstStudy:firstStudy, firstEnd:firstEnd, mockLeft:mockLeft,
+          calDays:calDays, studyDays:studyDays, perDay:perDay, unseen:unseen, wrongN:wrongN,
           workload:workload, capacity:capacity, need:need, subs:subs, weak:weak,
           phases:phases, todayDone:todayDone, week:week, streak:streak,
           poolN:pool.length, seen:pool.length-unseen};
@@ -2090,7 +2250,9 @@ function viewPlan(){
     el('hr',{cls:'sep'}),
     chipRow('每週讀幾天',[3,4,5,6,7],'days',function(v){return v+' 天';}),
     el('hr',{cls:'sep'}),
-    chipRow('每天投入',[30,45,60,90,120],'mins',function(v){return v+' 分鐘';},'約 1 分鐘 1 題（含看解析）')
+    chipRow('第一輪幾天內刷完',[30,45,60,90],'first',function(v){return v+' 天';},'考古題全部寫過一次'),
+    el('hr',{cls:'sep'}),
+    chipRow('每天投入',[30,45,60,90,120,180],'mins',function(v){return v+' 分鐘';},'約 1 分鐘 1 題（含看解析）')
   ]);
 
   var reg=TARGETS.filter(function(t){return t.id===p.target;})[0];
@@ -2108,12 +2270,12 @@ function viewPlan(){
       el('div',{},[el('b',{cls:'num',text:r.streak+' 天'}),el('span',{text:'連續達標'})])
     ]),
     el('div',{cls:'meter'},[el('i',{style:'width:'+Math.min(100,pct(r.todayDone,r.need))+'%'})]),
-    r.capacity<r.workload
-      ? el('div',{cls:'notice',text:'照目前設定，到考前約可練 '+r.capacity.toLocaleString()
-          +' 題，但還剩 '+r.workload.toLocaleString()+' 題要練（含錯題二刷）。'
-          +'建議把每天時間拉到 '+Math.ceil(r.workload/r.studyDays)+' 分鐘，或先集中在弱科。'})
-      : el('div',{cls:'notice',text:'照目前設定，到考前可練 '+r.capacity.toLocaleString()
-          +' 題，足夠把剩下的 '+r.workload.toLocaleString()+' 題練完，還有餘裕做整卷模擬。'})
+    el('div',{cls:'notice',text: r.unseen>0
+      ? '第一輪：還有 '+r.unseen.toLocaleString()+' 題沒寫過，要在 '+r.firstCal+' 天內（約 '+r.firstStudy
+        +' 個讀書日，到 '+(r.firstEnd.getMonth()+1)+'/'+r.firstEnd.getDate()+'）刷完，每個讀書日要寫 '+r.need+' 題。'
+        +(r.need>r.perDay? '以 1 分鐘 1 題估算，需要每天約 '+r.need+' 分鐘，比你設定的 '+r.perDay
+          +' 分鐘多；請拉長每天時間、增加每週天數，或把第一輪期限放寬。' : '你設定的每天 '+r.perDay+' 分鐘夠用。')
+      : '考古題第一輪已刷完。接下來每天 '+r.need+' 題：錯題再刷兩輪（'+r.wrongN+' 題）與模擬題（還有 '+r.mockLeft+' 題）。'})
   ]);
 
   /* 題庫覆蓋率 */

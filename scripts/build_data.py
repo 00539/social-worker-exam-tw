@@ -77,6 +77,24 @@ for sc in SCHOLARS:
 schol.sort(key=lambda x: -(len(x[7]) + 3 * len(x[8])))
 print('學者 %d 位；出題 0 次者：%s' % (len(schol), [x[0] for x in schol if not x[7] and not x[8]]))
 
+# 修法題依現行法的答案（scripts/lawfix/*.json）
+HERE = os.path.dirname(os.path.abspath(__file__))
+lawfix = {}
+for fn in sorted(glob.glob(os.path.join(HERE, 'lawfix', '*.json'))):
+    for k, v in json.load(open(fn, encoding='utf-8')).items():
+        lawfix[k] = [v['status'], v.get('current', ''), v['now'], v['law']]
+print('修法題現行答案 %d 題' % len(lawfix))
+
+# 自編模擬題（scripts/mock/m*.json，依 LIVE 科目順序）
+cidx = {c[1]: i for i, c in enumerate(CONCEPTS)}
+mock = []
+for fn in sorted(glob.glob(os.path.join(HERE, 'mock', 'm*.json'))):
+    sub = json.load(open(os.path.join(BUILD, 'mock', os.path.basename(fn)), encoding='utf-8'))['subject']
+    for q in json.load(open(fn, encoding='utf-8')):
+        mock.append([si[sub], q['stem'], [q['options'][k] for k in 'ABCD'], q['answer'], q['why'],
+                     q.get('law', ''), q['basis'], [cidx[c] for c in q['concepts'] if c in cidx]])
+print('模擬題 %d 題' % len(mock))
+
 from news import NEWS, CHECKED as NEWS_CHECKED
 news = sorted(NEWS, key=lambda n: n['date'], reverse=True)
 print('時事 %d 則' % len(news))
@@ -84,7 +102,7 @@ print('時事 %d 則' % len(news))
 payload = {'exams': exams, 'subjects': subs, 'rows': rows, 'ess': ess,
            'cons': cons, 'laws': laws, 'enotes': enotes,
            'nums': [list(n) for n in NUMS], 'numgroups': numgroup.group(NUMS), 'nums_checked': NUMS_CHECKED,
-           'scholars': schol, 'news': news, 'news_checked': NEWS_CHECKED}
+           'scholars': schol, 'news': news, 'lawfix': lawfix, 'mock': mock, 'news_checked': NEWS_CHECKED}
 os.makedirs(os.path.dirname(DST), exist_ok=True)
 with open(DST, 'w', encoding='utf-8') as f:
     f.write('window.__QB=')
