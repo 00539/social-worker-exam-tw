@@ -7,6 +7,8 @@ from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 
 import stats
 
@@ -48,6 +50,9 @@ doc = Document()
 sec = doc.sections[0]
 sec.top_margin = sec.bottom_margin = Cm(2.2)
 sec.left_margin = sec.right_margin = Cm(2.4)
+sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
+sec.header_distance = sec.footer_distance = Cm(1.1)
+sec.different_first_page_header_footer = True      # 封面不放頁首頁尾
 
 st = doc.styles['Normal']
 st.font.name = FONT
@@ -78,23 +83,135 @@ def para(text='', size=14, bold=False, align=None, after=6, indent=0):
     return p
 
 
+def border(p, sides, sz=8, space=4):
+    """段落框線；sides 例如 ('top', 'bottom')，sz 單位 1/8 pt"""
+    pPr = p._p.get_or_add_pPr()
+    bd = OxmlElement('w:pBdr')
+    for side in ('top', 'left', 'bottom', 'right'):      # 順序需符合 schema
+        if side in sides:
+            e = OxmlElement('w:' + side)
+            e.set(qn('w:val'), 'single')
+            e.set(qn('w:sz'), str(sz))
+            e.set(qn('w:space'), str(space))
+            e.set(qn('w:color'), '000000')
+            bd.append(e)
+    pPr.insert_element_before(bd, 'w:shd', 'w:tabs', 'w:suppressAutoHyphens', 'w:kinsoku', 'w:wordWrap',
+                              'w:overflowPunct', 'w:topLinePunct', 'w:autoSpaceDE', 'w:autoSpaceDN', 'w:bidi',
+                              'w:adjustRightInd', 'w:snapToGrid', 'w:spacing', 'w:ind', 'w:contextualSpacing',
+                              'w:mirrorIndents', 'w:suppressOverlap', 'w:jc', 'w:textDirection',
+                              'w:textAlignment', 'w:textboxTightWrap', 'w:outlineLvl', 'w:divId',
+                              'w:cnfStyle', 'w:rPr', 'w:sectPr', 'w:pPrChange')
+    return p
+
+
+def outline(p, level):
+    """設定大綱層級，Word 的導覽窗格才看得到章節"""
+    e = OxmlElement('w:outlineLvl')
+    e.set(qn('w:val'), str(level))
+    p._p.get_or_add_pPr().insert_element_before(e, 'w:divId', 'w:cnfStyle', 'w:rPr', 'w:sectPr', 'w:pPrChange')
+    return p
+
+
+def field(p, code, size=11):
+    for t, txt in (('begin', None), (None, code), ('end', None)):
+        r = p.add_run()
+        _fix(r, size)
+        if t:
+            fc = OxmlElement('w:fldChar')
+            fc.set(qn('w:fldCharType'), t)
+            r._r.append(fc)
+        else:
+            it = OxmlElement('w:instrText')
+            it.set(qn('xml:space'), 'preserve')
+            it.text = txt
+            r._r.append(it)
+
+
 def h1(text):
-    para('', after=2)
-    p = para(text, size=17, bold=True, after=8)
+    p = para(text, size=18, bold=True, after=10)
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.keep_with_next = True
+    border(p, ('bottom',), sz=12, space=5)
+    outline(p, 0)
     return p
 
 
 def h2(text):
-    return para(text, size=15, bold=True, after=4)
+    p = para(text, size=15, bold=True, after=4)
+    p.paragraph_format.space_before = Pt(10)
+    p.paragraph_format.keep_with_next = True
+    outline(p, 1)
+    return p
 
 
 def bullet(text, indent=0.6):
     p = doc.add_paragraph()
-    p.paragraph_format.left_indent = Cm(indent)
+    p.paragraph_format.left_indent = Cm(indent + 0.5)       # 凸排，換行後文字對齊
+    p.paragraph_format.first_line_indent = Cm(-0.5)
     p.paragraph_format.space_after = Pt(3)
     p.paragraph_format.line_spacing = 1.4
     _fix(p.add_run('・' + text))
     return p
+
+
+def note_box(lines, title=None):
+    """上下粗線的提要框"""
+    ps = []
+    if title:
+        ps.append(para(title, size=15, bold=True, after=4))
+    for x in lines:
+        ps.append(bullet(x))
+    border(ps[0], ('top',), sz=12, space=8)
+    border(ps[-1], ('bottom',), sz=12, space=8)
+    ps[-1].paragraph_format.space_after = Pt(10)
+    return ps
+
+
+def _shade(cell, fill):
+    tcPr = cell._tc.get_or_add_tcPr()
+    sh = OxmlElement('w:shd')
+    sh.set(qn('w:val'), 'clear')
+    sh.set(qn('w:color'), 'auto')
+    sh.set(qn('w:fill'), fill)
+    tcPr.insert_element_before(sh, 'w:noWrap', 'w:tcMar', 'w:textDirection', 'w:tcFitText', 'w:vAlign', 'w:hideMark')
+
+
+def _table_polish(t):
+    # 儲存格內距
+    tblPr = t._tbl.tblPr
+    mar = OxmlElement('w:tblCellMar')
+    for side, w in (('top', 30), ('left', 110), ('bottom', 30), ('right', 110)):
+        e = OxmlElement('w:' + side)
+        e.set(qn('w:w'), str(w))
+        e.set(qn('w:type'), 'dxa')
+        mar.append(e)
+    tblPr.insert_element_before(mar, 'w:tblLook', 'w:tblCaption', 'w:tblDescription')
+    for i, row in enumerate(t.rows):
+        trPr = row._tr.get_or_add_trPr()
+        cs = OxmlElement('w:cantSplit')                  # 列不跨頁斷開
+        trPr.append(cs)
+        if i == 0:
+            hd = OxmlElement('w:tblHeader')              # 跨頁時重複表頭
+            trPr.append(hd)
+        for c in row.cells:
+            if i == 0:
+                _shade(c, 'D9D9D9')
+                c.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            c.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            for pp in c.paragraphs:
+                pp.paragraph_format.line_spacing = 1.25
+
+
+# 頁首：文件名稱；頁尾：頁碼
+_hp = sec.header.paragraphs[0]
+_hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+_fix(_hp.add_run('社會工作師備考指南　115 年 11 月更新版'), 10)
+border(_hp, ('bottom',), sz=4, space=3)
+_fp = sec.footer.paragraphs[0]
+_fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+_fix(_fp.add_run('－ '), 11)
+field(_fp, 'PAGE')
+_fix(_fp.add_run(' －'), 11)
 
 
 def table(headers, rows, widths=None):
@@ -116,39 +233,62 @@ def table(headers, rows, widths=None):
         for row in t.rows:
             for i, w in enumerate(widths):
                 row.cells[i].width = Cm(w)
+    _table_polish(t)
     doc.add_paragraph().paragraph_format.space_after = Pt(2)
     return t
 
 
 # ══ 封面 ══════════════════════════════════
-para('專門職業及技術人員高等考試', size=14, align=WD_ALIGN_PARAGRAPH.CENTER, after=2)
-para('社會工作師　備考指南', size=24, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, after=4)
-para('十年考古題（106–115 年）資料分析版', size=14,
-     align=WD_ALIGN_PARAGRAPH.CENTER, after=2)
-para('115 年 11 月更新版', size=14, bold=True,
-     align=WD_ALIGN_PARAGRAPH.CENTER, after=18)
-
 days = (EXAM1 - TODAY).days
-para('製作日期：%d 年 %d 月 %d 日' % (TODAY.year, TODAY.month, TODAY.day), size=13,
-     align=WD_ALIGN_PARAGRAPH.CENTER, after=2)
-para('距 116 年第一次考試（116/02/20）尚有 %d 天' % days, size=13,
-     align=WD_ALIGN_PARAGRAPH.CENTER, after=2)
-para('分析母體：106–115 年共 20 次考試、115 份考卷、4,600 題測驗題、230 題申論題',
-     size=13, align=WD_ALIGN_PARAGRAPH.CENTER, after=18)
+C = WD_ALIGN_PARAGRAPH.CENTER
+for _ in range(2):
+    para('', after=6)
+_p = para('專門職業及技術人員高等考試', size=15, align=C, after=10)
+border(_p, ('top',), sz=18, space=14)
+para('社會工作師', size=32, bold=True, align=C, after=0).paragraph_format.line_spacing = 1.15
+para('備 考 指 南', size=32, bold=True, align=C, after=10).paragraph_format.line_spacing = 1.15
+_p = para('十年考古題（106–115 年）資料分析版　115 年 11 月更新', size=14, align=C, after=28)
+border(_p, ('bottom',), sz=18, space=14)
 
-para('這份指南做什麼用', size=15, bold=True, after=4)
+table(['項目', '內容'],
+      [['製作日期', '%d 年 %d 月 %d 日（民國 %d 年）' % (TODAY.year, TODAY.month, TODAY.day, TODAY.year - 1911)],
+       ['距 116 年第一次考試', '%d 天（考試日 116/02/20）' % days],
+       ['分析母體', '106–115 年共 20 次考試、115 份考卷\n4,600 題測驗題、230 題申論題'],
+       ['搭配使用', '線上刷題本（全題附解析、模擬試題 %d 題）' % len(MOCK)]],
+      widths=[5.0, 10.4])
+para('本指南由題庫資料統計產生，僅供備考參考，不負法律責任，亦不代表考選部立場。', size=12, align=C)
+
+doc.add_page_break()
+
+# ══ 前言與目錄 ══
+h1('這份指南做什麼用')
 para('市面上的考古題整理多半止於「題目與答案」。這份指南把考選部公布的十年試題全部'
      '解析成結構化資料後，統計出各科真正反覆出現的考點，讓準備方向有數字依據，'
      '而不是憑印象。所有數字都可以回推到原始試卷查證。', after=6)
-para('搭配線上刷題本使用效果最好：指南負責「先看清楚地圖」，刷題本負責「每天走路」。', after=10)
+para('搭配線上刷題本使用效果最好：指南負責「先看清楚地圖」，刷題本負責「每天走路」。', after=12)
 
-para('本版更新重點', size=15, bold=True, after=4)
-bullet('刷題本 4,600 題測驗題全部附解析：為什麼對、其他選項錯在哪、相關法條連結')
-bullet('寫過的題目不再重複出現，隨機出題只出新題；答錯的收進錯題本另外複習')
-bullet('修法題 %d 題不再出題，逐題對照現行條文給出現在的答案（第三章，含答案已改變的題目一覽）' % len(LAWFIX))
-bullet('新增自編模擬試題 %d 題：依 111–115 年出題趨勢、時事、新法與個人錯題出題（第七章）' % len(MOCK))
-bullet('讀書時程改為「第一輪限期刷完」的算法，依剩餘天數重排（第五章）')
-bullet('法規數字速記表更正一處條號：特殊境遇家庭扶助條例的傷病醫療補助為第 9 條')
+note_box([
+    '刷題本 4,600 題測驗題全部附解析：為什麼對、其他選項錯在哪、相關法條連結',
+    '寫過的題目不再重複出現，隨機出題只出新題；答錯的收進錯題本另外複習',
+    '修法題 %d 題不再出題，逐題對照現行條文給出現在的答案（第三章）' % len(LAWFIX),
+    '新增自編模擬試題 %d 題：依 111–115 年出題趨勢、時事、新法與個人錯題出題（第七章）' % len(MOCK),
+    '讀書時程改為「第一輪限期刷完」的算法，依剩餘天數重排（第五章）',
+    '法規數字速記表更正一處條號：特殊境遇家庭扶助條例的傷病醫療補助為第 9 條',
+], title='本版更新重點')
+
+h2('目錄')
+table(['章', '標題', '重點'],
+      [['一', '考試制度速覽', '應考資格、科目、及格標準、116 年日程'],
+       ['二', '十年考古題告訴我們什麼', '各科前 12 大考點、申論主題、重複題'],
+       ['三', '法規已修正的考古題，不要硬背', '修法題現行答案、法規數字速記表'],
+       ['四', '各科準備策略', '五科的優先順序與主攻重點'],
+       ['五', '讀書時程', '%d 天版、改考第二次的時程' % days],
+       ['六', '申論題怎麼練', '答題架構、常見失分'],
+       ['七', '線上刷題本怎麼用', '各功能的使用時機、模擬試題'],
+       ['八', '學者與理論', '依十年出題次數排列'],
+       ['九', '時事與政策動態', '近兩年修法與政策'],
+       ['附', '資料來源與說明', '']],
+      widths=[1.4, 7.0, 7.0])
 
 doc.add_page_break()
 
