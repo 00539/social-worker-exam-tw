@@ -781,7 +781,7 @@ function drawSiteFoot(){
 }
 
 /* ═══ 設定 ═══ */
-var cfg = store.set || {type:'mc', mode:'practice', subjects:[], exams:[], count:20, order:'random'};
+var cfg = store.set || {type:'mc', mode:'practice', subjects:[], exams:[], count:20, order:'recent'};
 if(!Array.isArray(cfg.subjects)) cfg.subjects=[];
 if(!Array.isArray(cfg.exams)) cfg.exams=[];
 if(!cfg.type) cfg.type='mc';
@@ -789,6 +789,18 @@ if(!cfg.type) cfg.type='mc';
 if(!cfg.lawFilter) cfg.lawFilter = (cfg.hideStale===false? 'off' : 'high');
 
 if(cfg.fresh==null) cfg.fresh=true;
+/* 近五年（111–115 年）優先出題：舊設定的「隨機」一次性改為新預設 */
+if(!cfg.recentMig){ if(cfg.order==='random') cfg.order='recent'; cfg.recentMig=1; }
+function isRecent(q){ return q.exam.slice(0,3)>='111'; }
+function orderList(list){
+  if(cfg.order==='paper') return list.sort(function(a,b){
+    return a.exam<b.exam?-1:a.exam>b.exam?1:
+           (DB.subjects.indexOf(a.subject)-DB.subjects.indexOf(b.subject))||(a.no-b.no);
+  });
+  shuffle(list);
+  if(cfg.order==='recent') return list.filter(isRecent).concat(list.filter(function(q){return !isRecent(q);}));
+  return list;
+}
 function inScope(q){
   if(isStale(q)) return false;   /* 修法前的題目不出，改在「修法題」頁看現行答案 */
   if(cfg.subjects.length && cfg.subjects.indexOf(q.subject)<0) return false;
@@ -893,7 +905,7 @@ function viewHome(){
     cards.appendChild(el('button',{cls:'subcard'+(dropped?' dropped':''),style:subStyle(s),
       onclick:function(){
         cfg.type='mc'; cfg.mode='practice'; cfg.subjects=[s]; cfg.exams=[];
-        cfg.count=20; cfg.order='random'; store.set=cfg; save();
+        cfg.count=20; cfg.order='recent'; store.set=cfg; save();
         CURRENT='drill'; startQuiz();
       }},[
       el('h3',{text:s}),
@@ -1061,7 +1073,8 @@ function viewSetup(){
   var howmany=el('div',{cls:'card stack'},[
     optRow('題數',[10,20,40,0],'count',function(v){return v===0?'全部':v+' 題';}),
     el('hr',{cls:'sep'}),
-    optRow('出題順序',['random','paper'],'order',function(v){return v==='random'?'隨機':'依年度卷序';}),
+    optRow('出題順序',['recent','random','paper'],'order',function(v){return v==='recent'?'近五年優先':v==='random'?'全部隨機':'依年度卷序';}),
+    cfg.order==='recent'? el('div',{cls:'tiny muted',text:'先出 111–115 年的題目（隨機），這個範圍的近五年題目寫完後才出 106–110 年。'}) : null,
     cfg.mode==='wrong'? null : el('hr',{cls:'sep'}),
     cfg.mode==='wrong'? null : optRow('寫過的題目',[true,false],'fresh',function(v){
       return v?'不再出現（只出新題）':'也可以再出';}),
@@ -1097,8 +1110,8 @@ function viewSetup(){
   if(cfg.type==='mc') kids.push(modes);
   kids.push(scope);
   kids.push(cfg.type==='essay'
-    ? el('div',{cls:'card stack'},[optRow('出題順序',['random','paper'],'order',
-        function(v){return v==='random'?'隨機':'依年度卷序';})])
+    ? el('div',{cls:'card stack'},[optRow('出題順序',['recent','random','paper'],'order',
+        function(v){return v==='recent'?'近五年優先':v==='random'?'全部隨機':'依年度卷序';})])
     : howmany);
   if(cfg.type==='mc') kids.push(lawbox);
   kids.push(start);
@@ -1114,11 +1127,7 @@ var S=null, tick=null;
 
 function startQuiz(){
   var list=pool();
-  if(cfg.order==='random') shuffle(list);
-  else list.sort(function(a,b){
-    return a.exam<b.exam?-1:a.exam>b.exam?1:
-           (DB.subjects.indexOf(a.subject)-DB.subjects.indexOf(b.subject))||(a.no-b.no);
-  });
+  list=orderList(list);
   if(cfg.count>0) list=list.slice(0,cfg.count);
 
   S={list:list, at:0, picks:new Array(list.length).fill(null), flags:{},
@@ -1448,7 +1457,8 @@ var ES_S=null;
 
 function startEssay(){
   var list=essayPool();
-  if(cfg.order==='random') shuffle(list);
+  if(cfg.order==='recent'){ shuffle(list); list=list.filter(isRecent).concat(list.filter(function(q){return !isRecent(q);})); }
+  else if(cfg.order==='random') shuffle(list);
   else list.sort(function(a,b){
     return a.exam<b.exam?-1:a.exam>b.exam?1:
            (DB.subjects.indexOf(a.subject)-DB.subjects.indexOf(b.subject))||(a.no-b.no);
@@ -2435,7 +2445,7 @@ function viewPlan(){
     el('div',{cls:'btn-row'},[
       el('button',{cls:'btn',onclick:function(){
         cfg.type='mc'; cfg.mode='practice'; cfg.subjects=[w.name]; cfg.exams=[];
-        cfg.count=Math.min(40,r.need); cfg.order='random';
+        cfg.count=Math.min(40,r.need); cfg.order='recent';
         store.set=cfg; save(); startQuiz();
       }},[document.createTextNode('練 '+w.name),
           el('span',{cls:'cnt',text:Math.min(40,r.need)+' 題'})]),
