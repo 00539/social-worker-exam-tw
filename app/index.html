@@ -552,6 +552,19 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   .brand .dot{width:20px;height:20px}
   .hero2{padding-block:22px 16px}
 }
+/* ── 手機單手（左手）操作：確認／下一題放最左下，拇指不用伸過整個螢幕 ── */
+@media (max-width:640px){
+  .qnav{flex-wrap:wrap;gap:8px}
+  .qnav .spacer{display:none}
+  .qnav .next{order:-1;flex:1 1 100%;padding:15px 18px;font-size:17px;min-height:52px}
+  .qnav.quiz{position:sticky;z-index:15;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);
+    padding:8px;border:1px solid var(--line);border-radius:16px;flex-wrap:nowrap;
+    background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(10px);
+    box-shadow:0 -6px 24px -12px rgba(26,35,31,.35)}
+  .qnav.quiz .next{flex:1 1 auto;min-width:0}
+  .qnav.quiz .btn.ghost{flex:none;padding:15px 14px;min-height:52px}
+  .opt{min-height:56px}
+}
 </style>
 </head>
 <body>
@@ -1229,14 +1242,14 @@ function viewQuiz(){
   var padwrap=el('details',{cls:'padwrap'},[el('summary',{text:'題號一覽'}),pad]);
 
   var answered=S.picks.filter(function(v){return v!=null;}).length;
-  var nav=el('div',{cls:'qnav'},[
+  var nav=el('div',{cls:'qnav quiz'},[
     S.at>0? el('button',{cls:'btn ghost sm',text:'← 上一題',onclick:function(){go(-1);}}):null,
     el('button',{cls:'btn ghost sm flagbtn','aria-pressed':!!S.flags[S.at],text:S.flags[S.at]?'★ 已標記':'☆ 標記',
       onclick:function(){ if(S.flags[S.at]) delete S.flags[S.at]; else S.flags[S.at]=1; viewQuiz(); }}),
     el('span',{cls:'spacer'}),
     S.at<S.list.length-1
-      ? el('button',{cls:'btn sm',text:'下一題 →',onclick:function(){go(1);}})
-      : el('button',{cls:'btn sm',text:'交卷看結果',onclick:function(){finish(false);}})
+      ? el('button',{cls:'btn sm next',text:'下一題 →',onclick:function(){go(1);}})
+      : el('button',{cls:'btn sm next',text:'交卷看結果',onclick:function(){finish(false);}})
   ]);
 
   var endbar=el('div',{cls:'btn-row'},[
@@ -1547,7 +1560,7 @@ function viewEssay(){
     el('button',{cls:'btn ghost sm',text:'回首頁',onclick:viewHome}),
     el('span',{cls:'spacer'}),
     ES_S.at<ES_S.list.length-1
-      ? el('button',{cls:'btn sm',text:'下一題 →',onclick:function(){essayGo(1);}}):null
+      ? el('button',{cls:'btn sm next',text:'下一題 →',onclick:function(){essayGo(1);}}):null
   ]);
 
   /* ── 作答參考 ────────────────────────────
