@@ -552,8 +552,9 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   .brand .dot{width:20px;height:20px}
   .hero2{padding-block:22px 16px}
 }
-/* ── 手機單手（左手）操作：確認／下一題放最左下，拇指不用伸過整個螢幕 ── */
-@media (max-width:640px){
+/* ── 手機單手（左手）操作：確認／下一題放最左下，拇指不用伸過整個螢幕 ──
+   手機若開了「電腦版網站」，寬度會超過 640px，所以改用「觸控裝置」也套用 */
+@media (max-width:820px),(pointer:coarse){
   .qnav{flex-wrap:wrap;gap:8px}
   .qnav .spacer{display:none}
   .qnav .next{order:-1;flex:1 1 100%;padding:15px 18px;font-size:17px;min-height:52px}
